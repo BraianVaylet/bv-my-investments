@@ -1,0 +1,49 @@
+@import 'tailwindcss';
+
+/* Tokens BV (dark-first, grilla 8px, Inter) */
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --color-bg: #0b0e14;
+  --color-surface: #131722;
+  --color-surface-2: #1b2130;
+  --color-border: #262e40;
+  --color-text: #e6e9f0;
+  --color-muted: #8b93a7;
+  --color-primary: #4f7cff;
+  --color-primary-hover: #6b91ff;
+  --color-positive: #34d399;
+  --color-negative: #f87171;
+  --color-warning: #fbbf24;
+}
+
+html {
+  background-color: var(--color-bg);
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* foco visible consistente (accesibilidad F9) */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* inputs numéricos sin spinners */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
