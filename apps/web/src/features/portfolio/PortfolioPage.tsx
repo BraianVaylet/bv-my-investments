@@ -23,7 +23,10 @@ export function PositionCard({ p, currency }: { p: PositionDTO; currency: string
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold">{p.ticker}</span>
-              <Badge>{p.instrumentTypeName}</Badge>
+              <Badge>
+                {p.instrumentTypeEmoji ? `${p.instrumentTypeEmoji} ` : ''}
+                {p.instrumentTypeName}
+              </Badge>
               {p.quote?.stale && <Badge tone="warning">dato viejo</Badge>}
             </div>
             <p className="mt-0.5 text-xs text-muted">

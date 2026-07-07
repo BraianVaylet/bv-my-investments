@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Archive, ArchiveRestore, ChevronLeft, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { MasterDTO } from '@bv/shared';
@@ -11,18 +12,28 @@ import {
   EmptyState,
   ErrorState,
   Field,
+  IconButton,
   Input,
   ListSkeleton,
   Modal,
 } from '../../components/ui';
 
 const MASTERS = [
-  { key: 'instrument-types', label: 'Tipos de instrumento', hasCode: false },
-  { key: 'platforms', label: 'Plataformas', hasCode: false },
-  { key: 'currencies', label: 'Monedas', hasCode: true },
+  { key: 'instrument-types', label: 'Tipos de instrumento', hasCode: false, hasRatio: true },
+  { key: 'platforms', label: 'Plataformas', hasCode: false, hasRatio: false },
+  { key: 'currencies', label: 'Monedas', hasCode: true, hasRatio: false },
 ] as const;
 
 type MasterKey = (typeof MASTERS)[number]['key'];
+
+interface FormState {
+  name: string;
+  code: string;
+  emoji: string;
+  hasRatio: boolean;
+}
+
+const emptyForm: FormState = { name: '', code: '', emoji: '', hasRatio: false };
 
 export function MastersPage() {
   const qc = useQueryClient();
@@ -30,8 +41,7 @@ export function MastersPage() {
   const [editing, setEditing] = useState<MasterDTO | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<MasterDTO | null>(null);
-  const [name, setName] = useState('');
-  const [code, setCode] = useState('');
+  const [form, setForm] = useState<FormState>(emptyForm);
 
   const cfg = MASTERS.find((m) => m.key === tab)!;
   const query = useQuery({
@@ -46,7 +56,10 @@ export function MastersPage() {
 
   const save = useMutation({
     mutationFn: () => {
-      const body = cfg.hasCode ? { name, code } : { name };
+      const body: Record<string, unknown> = { name: form.name };
+      if (form.emoji.trim()) body.emoji = form.emoji.trim();
+      if (cfg.hasCode) body.code = form.code;
+      if (cfg.hasRatio) body.hasRatio = form.hasRatio;
       return editing ? api.put(`/${tab}/${editing.id}`, body) : api.post(`/${tab}`, body);
     },
     onSuccess: () => {
@@ -70,22 +83,23 @@ export function MastersPage() {
   const closeForm = () => {
     setCreating(false);
     setEditing(null);
-    setName('');
-    setCode('');
+    setForm(emptyForm);
     save.reset();
   };
 
   const openEdit = (m: MasterDTO) => {
     setEditing(m);
-    setName(m.name);
-    setCode(m.code ?? '');
+    setForm({
+      name: m.name,
+      code: m.code ?? '',
+      emoji: m.emoji ?? '',
+      hasRatio: m.hasRatio ?? false,
+    });
   };
 
   const removeError =
     remove.error instanceof ApiError
-      ? remove.error.code === 'IN_USE'
-        ? remove.error.message
-        : remove.error.message
+      ? remove.error.message
       : remove.error
         ? 'No se pudo borrar'
         : null;
@@ -95,17 +109,8 @@ export function MastersPage() {
       <PageHeader
         title="Maestros"
         back={
-          <Link to="/more" className="text-muted hover:text-text" aria-label="Volver">
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
+          <Link to="/more" className="text-muted hover:text-fg" aria-label="Volver">
+            <ChevronLeft size={22} />
           </Link>
         }
         right={<Button onClick={() => setCreating(true)}>Agregar</Button>}
@@ -117,7 +122,7 @@ export function MastersPage() {
             key={m.key}
             onClick={() => setTab(m.key)}
             className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-              tab === m.key ? 'bg-primary text-white' : 'text-muted hover:text-text'
+              tab === m.key ? 'bg-primary text-on-primary' : 'text-muted hover:text-fg'
             }`}
           >
             {m.label}
@@ -136,22 +141,27 @@ export function MastersPage() {
       {query.data && query.data.length > 0 && (
         <div className="space-y-2">
           {query.data.map((m) => (
-            <Card key={m.id} className="flex items-center justify-between py-3">
+            <Card key={m.id} className="flex items-center justify-between py-2 pr-2">
               <div className="flex items-center gap-2">
+                {m.emoji && <span className="text-lg">{m.emoji}</span>}
                 <span className="text-sm font-medium">{m.name}</span>
                 {m.code && <Badge>{m.code}</Badge>}
+                {m.hasRatio && <Badge tone="primary">con ratio</Badge>}
                 {m.archived && <Badge tone="warning">archivado</Badge>}
               </div>
-              <div className="flex gap-3 text-xs">
-                <button className="text-primary" onClick={() => openEdit(m)}>
-                  Renombrar
-                </button>
-                <button className="text-muted" onClick={() => toggleArchive.mutate(m)}>
-                  {m.archived ? 'Desarchivar' : 'Archivar'}
-                </button>
-                <button className="text-negative" onClick={() => setDeleting(m)}>
-                  Borrar
-                </button>
+              <div className="flex items-center">
+                <IconButton label="Renombrar" tone="primary" onClick={() => openEdit(m)}>
+                  <Pencil size={16} />
+                </IconButton>
+                <IconButton
+                  label={m.archived ? 'Desarchivar' : 'Archivar'}
+                  onClick={() => toggleArchive.mutate(m)}
+                >
+                  {m.archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                </IconButton>
+                <IconButton label="Borrar" tone="danger" onClick={() => setDeleting(m)}>
+                  <Trash2 size={16} />
+                </IconButton>
               </div>
             </Card>
           ))}
@@ -161,7 +171,7 @@ export function MastersPage() {
       <Modal
         open={creating || Boolean(editing)}
         onClose={closeForm}
-        title={editing ? `Renombrar (${cfg.label})` : `Nuevo (${cfg.label})`}
+        title={editing ? `Editar (${cfg.label})` : `Nuevo (${cfg.label})`}
       >
         <form
           onSubmit={(e) => {
@@ -170,21 +180,54 @@ export function MastersPage() {
           }}
           className="space-y-4"
         >
-          <Field label="Nombre">
-            <Input value={name} onChange={(e) => setName(e.target.value)} required />
-          </Field>
+          <div className="grid grid-cols-[1fr_5rem] gap-3">
+            <Field label="Nombre">
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+              />
+            </Field>
+            <Field label="Emoji">
+              <Input
+                value={form.emoji}
+                onChange={(e) => setForm({ ...form, emoji: e.target.value })}
+                placeholder="🪙"
+                maxLength={8}
+              />
+            </Field>
+          </div>
           {cfg.hasCode && (
             <Field label="Código (ej. ARS)">
               <Input
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                value={form.code}
+                onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
                 required
                 maxLength={8}
               />
             </Field>
           )}
+          {cfg.hasRatio && (
+            <label className="flex items-start gap-3 rounded-lg border border-border bg-surface-2 p-3">
+              <input
+                type="checkbox"
+                checked={form.hasRatio}
+                onChange={(e) => setForm({ ...form, hasRatio: e.target.checked })}
+                className="mt-0.5 h-4 w-4 accent-[var(--primary)]"
+              />
+              <span>
+                <span className="block text-sm font-medium">
+                  ¿Este tipo usa ratio de conversión?
+                </span>
+                <span className="block text-xs text-muted">
+                  Ej: los CEDEARs necesitan ratio (144:1); las criptos y acciones no. Si está
+                  activo, el alta de activos de este tipo pide el ratio.
+                </span>
+              </span>
+            </label>
+          )}
           {save.error && (
-            <p className="text-sm text-negative">
+            <p className="text-sm text-danger">
               {save.error instanceof ApiError ? save.error.message : 'No se pudo guardar'}
             </p>
           )}

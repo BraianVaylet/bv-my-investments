@@ -2,7 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import { Types } from 'mongoose';
 import { operationCreateSchema, operationFiltersSchema, operationUpdateSchema } from '@bv/shared';
 import { AppError } from '../../core/errors';
-import { replay, validateOps, type ReplayOp } from '../../core/position';
+import { replay, validateOps, type CorporateEventInput, type ReplayOp } from '../../core/position';
+import { loadCorporateEvents } from '../corporate-events/routes';
 import { Asset } from '../../models/asset.model';
 import { Operation } from '../../models/operation.model';
 import { toOperationDTO } from './dto';
@@ -26,8 +27,8 @@ async function loadReplayOps(assetId: string): Promise<ReplayOp[]> {
  * RB-02 sobre el set resultante: simula el alta/edición/borrado y valida por replay.
  * `statusCode`: 422 para alta/edición, 409 para borrado (doc 02 §5).
  */
-function assertValidSet(ops: ReplayOp[], statusCode: 422 | 409) {
-  const err = validateOps(ops);
+function assertValidSet(ops: ReplayOp[], events: CorporateEventInput[], statusCode: 422 | 409) {
+  const err = validateOps(ops, events);
   if (err) {
     throw new AppError(
       statusCode,
@@ -88,7 +89,7 @@ export async function operationsRoutes(app: FastifyInstance) {
     const eventsByOp = new Map<string, import('../../core/position').SellEvent>();
     for (const assetId of sellAssetIds) {
       try {
-        const state = replay(await loadReplayOps(assetId));
+        const state = replay(await loadReplayOps(assetId), await loadCorporateEvents(assetId));
         for (const ev of state.sellEvents) eventsByOp.set(ev.opId, ev);
       } catch {
         // set inconsistente: se omite el realizado, no se rompe el listado
@@ -118,7 +119,7 @@ export async function operationsRoutes(app: FastifyInstance) {
       date: body.date,
       createdAt: new Date(),
     });
-    assertValidSet(existing, 422);
+    assertValidSet(existing, await loadCorporateEvents(body.assetId), 422);
 
     const doc = await Operation.create({ ...body, createdBy: request.user!.id });
     await doc.populate(['assetId', 'platformId', 'currencyId', 'createdBy']);
@@ -147,17 +148,18 @@ export async function operationsRoutes(app: FastifyInstance) {
       createdAt: doc.createdAt,
     };
 
+    const targetEvents = await loadCorporateEvents(targetAssetId);
     if (targetAssetId !== String(doc.assetId)) {
       // cambió de activo: validar el viejo sin la op y el nuevo con la op
       const oldSet = (await loadReplayOps(String(doc.assetId))).filter((o) => o.id !== id);
-      assertValidSet(oldSet, 422);
+      assertValidSet(oldSet, await loadCorporateEvents(String(doc.assetId)), 422);
       const newSet = await loadReplayOps(targetAssetId);
       newSet.push(edited);
-      assertValidSet(newSet, 422);
+      assertValidSet(newSet, targetEvents, 422);
     } else {
       const set = (await loadReplayOps(targetAssetId)).filter((o) => o.id !== id);
       set.push(edited);
-      assertValidSet(set, 422);
+      assertValidSet(set, targetEvents, 422);
     }
 
     Object.assign(doc, body);
@@ -175,7 +177,7 @@ export async function operationsRoutes(app: FastifyInstance) {
     if (!doc) throw new AppError(404, 'NOT_FOUND', 'Operación no encontrada');
 
     const remaining = (await loadReplayOps(String(doc.assetId))).filter((o) => o.id !== id);
-    assertValidSet(remaining, 409);
+    assertValidSet(remaining, await loadCorporateEvents(String(doc.assetId)), 409);
 
     await doc.deleteOne();
     return reply.status(204).send();

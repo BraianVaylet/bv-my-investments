@@ -1,5 +1,6 @@
 import { round2, round8, UNIT_EPS } from '../../core/money';
 import { replay, type PositionState } from '../../core/position';
+import { loadAllCorporateEvents } from '../corporate-events/routes';
 import { Asset } from '../../models/asset.model';
 import { Currency } from '../../models/masters.model';
 import { Operation } from '../../models/operation.model';
@@ -55,11 +56,12 @@ function quoteToDTO(quote: ResolvedQuote | null) {
 
 /** Carga todo lo necesario: replay por activo + quotes de abiertas + FX (doc 02 §5). */
 export async function loadPortfolio(opts: { forceQuotes?: boolean } = {}): Promise<PortfolioData> {
-  const [assets, ops, currencies, settings] = await Promise.all([
+  const [assets, ops, currencies, settings, eventsByAsset] = await Promise.all([
     Asset.find().populate(['instrumentTypeId', 'quoteCurrencyId']),
     Operation.find().select('type assetId platformId units unitPrice currencyId date createdAt'),
     Currency.find(),
     getSettings(),
+    loadAllCorporateEvents(),
   ]);
   const currencyCode = new Map(currencies.map((c) => [c.id, c.code]));
   const assetById = new Map(assets.map((a) => [a.id, a]));
@@ -88,6 +90,7 @@ export async function loadPortfolio(opts: { forceQuotes?: boolean } = {}): Promi
           createdAt: o.createdAt,
           platformId: String(o.platformId),
         })),
+        eventsByAsset.get(assetId) ?? [],
       );
     } catch {
       continue; // set inconsistente: no rompe el portafolio
@@ -125,6 +128,7 @@ export function positionToDTO(r: RawPosition, display: Display, fxValue: number 
     ticker: asset.ticker,
     name: asset.name,
     instrumentTypeName: asset.instrumentTypeId?.name ?? '',
+    instrumentTypeEmoji: asset.instrumentTypeId?.emoji ?? undefined,
     units: round8(state.units),
     avgCost: round8(state.avgCost),
     opCurrency: r.opCurrencyCode,

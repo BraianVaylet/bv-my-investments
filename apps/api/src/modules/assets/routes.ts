@@ -8,6 +8,8 @@ import { toOperationDTO } from '../operations/dto';
 import { buildPositionDTO } from '../portfolio/service';
 import { getPriceHistory } from '../quotes/history';
 import { toProviderAsset } from '../quotes/service';
+import { loadCorporateEvents, toCorporateEventDTO } from '../corporate-events/routes';
+import { CorporateEvent } from '../../models/corporateEvent.model';
 
 export function toAssetDTO(doc: any) {
   const it = doc.instrumentTypeId;
@@ -18,6 +20,7 @@ export function toAssetDTO(doc: any) {
     name: doc.name,
     instrumentTypeId: typeof it === 'object' && it ? String(it._id) : String(it),
     instrumentTypeName: typeof it === 'object' && it ? it.name : undefined,
+    instrumentTypeEmoji: typeof it === 'object' && it ? (it.emoji ?? undefined) : undefined,
     quoteCurrencyId: typeof cur === 'object' && cur ? String(cur._id) : String(cur),
     quoteCurrencyCode: typeof cur === 'object' && cur ? cur.code : undefined,
     providerSymbols: doc.providerSymbols ?? {},
@@ -61,9 +64,10 @@ export async function assetsRoutes(app: FastifyInstance) {
       date: o.date,
       createdAt: o.createdAt,
     }));
+    const events = await loadCorporateEvents(id);
     let position = null;
     try {
-      const state = replay(replayInput);
+      const state = replay(replayInput, events);
       if (state.totalBought > 0) {
         position = await buildPositionDTO(doc, state, ops, 'ARS');
       }
@@ -71,10 +75,12 @@ export async function assetsRoutes(app: FastifyInstance) {
       // set inconsistente (no debería pasar: se valida en cada alta/edición)
     }
 
+    const eventDocs = await CorporateEvent.find({ assetId: id }).sort({ date: -1 });
     return {
       ...toAssetDTO(doc),
       position,
       operations: ops.slice(0, 20).map((o) => toOperationDTO(o, doc.ticker)),
+      corporateEvents: eventDocs.map(toCorporateEventDTO),
     };
   });
 

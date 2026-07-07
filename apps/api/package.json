@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "import:csv": "tsx src/scripts/import-csv.ts",
+    "backfill:snapshots": "tsx src/scripts/backfill-snapshots.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "test": "vitest run",

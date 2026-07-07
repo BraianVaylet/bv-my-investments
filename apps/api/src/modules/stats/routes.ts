@@ -7,6 +7,7 @@ import { Operation } from '../../models/operation.model';
 import { getSettings } from '../../models/settings.model';
 import { getFx } from '../quotes/fx';
 import { replay } from '../../core/position';
+import { loadAllCorporateEvents } from '../corporate-events/routes';
 
 const currencyQuery = z.object({ currency: z.enum(['ARS', 'USD']).optional() });
 
@@ -27,9 +28,10 @@ export async function statsRoutes(app: FastifyInstance) {
     const fx = await getFx(settings.fxKind);
     const fxValue = fx?.value ?? null;
 
-    const [ops, currencies] = await Promise.all([
+    const [ops, currencies, eventsByAsset] = await Promise.all([
       Operation.find().select('type assetId units unitPrice currencyId date createdAt'),
       Currency.find(),
+      loadAllCorporateEvents(),
     ]);
     const codeById = new Map(currencies.map((c) => [c.id, c.code]));
 
@@ -40,7 +42,7 @@ export async function statsRoutes(app: FastifyInstance) {
       (opsByAsset.get(key) ?? opsByAsset.set(key, []).get(key)!).push(op);
     }
     const realizedByOp = new Map<string, number>();
-    for (const assetOps of opsByAsset.values()) {
+    for (const [assetId, assetOps] of opsByAsset) {
       try {
         const state = replay(
           assetOps.map((o) => ({
@@ -51,6 +53,7 @@ export async function statsRoutes(app: FastifyInstance) {
             date: o.date,
             createdAt: o.createdAt,
           })),
+          eventsByAsset.get(assetId) ?? [],
         );
         for (const ev of state.sellEvents) realizedByOp.set(ev.opId, ev.realized);
       } catch {

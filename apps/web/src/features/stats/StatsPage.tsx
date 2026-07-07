@@ -75,7 +75,7 @@ export function StatsPage() {
             <BarChart data={last12} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
               <XAxis
                 dataKey="month"
-                tick={{ fontSize: 9, fill: '#8b93a7' }}
+                tick={{ fontSize: 9, fill: 'var(--muted)' }}
                 tickFormatter={(m: string) => m.slice(2).replace('-', '/')}
                 tickLine={false}
                 axisLine={false}
@@ -83,8 +83,8 @@ export function StatsPage() {
               <YAxis hide />
               <Tooltip
                 contentStyle={{
-                  background: '#1b2130',
-                  border: '1px solid #262e40',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
                   borderRadius: 8,
                   fontSize: 12,
                 }}
@@ -93,8 +93,8 @@ export function StatsPage() {
                   name === 'invested' ? 'Invertido' : 'Vendido',
                 ]}
               />
-              <Bar dataKey="invested" fill="#4f7cff" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="sold" fill="#34d399" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="invested" fill="var(--primary)" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="sold" fill="var(--ok)" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>

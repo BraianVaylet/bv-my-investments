@@ -12,6 +12,8 @@ export interface MasterDTO {
   id: string;
   name: string;
   code?: string; // solo currencies
+  emoji?: string;
+  hasRatio?: boolean; // solo instrument types
   archived: boolean;
 }
 
@@ -21,6 +23,7 @@ export interface AssetDTO {
   name: string;
   instrumentTypeId: string;
   instrumentTypeName?: string;
+  instrumentTypeEmoji?: string;
   quoteCurrencyId: string;
   quoteCurrencyCode?: string;
   providerSymbols: Record<string, string | undefined>;
@@ -35,6 +38,7 @@ export interface OperationDTO {
   assetTicker?: string;
   platformId: string;
   platformName?: string;
+  platformEmoji?: string;
   units: number;
   currencyId: string;
   currencyCode?: string;
@@ -71,6 +75,7 @@ export interface PositionDTO {
   ticker: string;
   name: string;
   instrumentTypeName: string;
+  instrumentTypeEmoji?: string;
   units: number;
   /** PPC en moneda de operación */
   avgCost: number;
@@ -145,19 +150,49 @@ export interface AllocationDTO {
   byCurrency: AllocationSliceDTO[];
 }
 
-export type SignalKind = 'buy' | 'sell' | 'near-52w-low' | 'near-52w-high' | 'daily-move';
+export type SignalKind =
+  'buy' | 'sell' | 'near-52w-low' | 'near-52w-high' | 'daily-move' | 'custom';
 
 export interface SignalDTO {
   kind: SignalKind;
+  /** naturaleza de la señal (para las custom; en las built-in coincide con kind si aplica) */
+  nature?: 'buy' | 'sell';
+  ruleName?: string;
+  description?: string;
   assetId: string;
   ticker: string;
   message: string;
   value?: number;
 }
 
+export interface CorporateEventDTO {
+  id: string;
+  assetId: string;
+  type: 'split' | 'ratio-change';
+  date: string;
+  factor: number;
+  notes?: string;
+}
+
+export interface SignalRuleDTO {
+  id: string;
+  name: string;
+  description?: string;
+  nature: 'buy' | 'sell';
+  scope: 'global' | 'asset';
+  assetId?: string;
+  assetTicker?: string;
+  thresholdType: 'percent' | 'price';
+  direction: 'above' | 'below';
+  value: number;
+  currency?: DisplayCurrency;
+  enabled: boolean;
+}
+
 export interface AssetDetailDTO extends AssetDTO {
   position: PositionDTO | null;
   operations: OperationDTO[];
+  corporateEvents: CorporateEventDTO[];
 }
 
 export interface ApiErrorBody {

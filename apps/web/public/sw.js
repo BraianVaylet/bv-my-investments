@@ -2,7 +2,7 @@
  * - /api: nunca se cachea (datos vivos, sesión).
  * - /assets (hasheados): cache-first.
  * - navegación: network-first con fallback al shell cacheado (offline). */
-const CACHE = 'bv-invest-v1';
+const CACHE = 'bv-invest-v2';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

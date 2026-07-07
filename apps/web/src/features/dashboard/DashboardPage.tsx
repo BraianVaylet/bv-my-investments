@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom';
 import type { AllocationDTO, PortfolioSummaryDTO, SignalDTO, SnapshotDTO } from '@bv/shared';
 import { api } from '../../lib/api';
 import { fmtMoney, fmtPct, timeAgo } from '../../lib/format';
-import { useDisplayCurrency, useSession } from '../../lib/session';
+import { useDisplayCurrency } from '../../lib/session';
 import { PageHeader } from '../../components/Layout';
 import {
   Badge,
@@ -25,21 +25,38 @@ import {
   SignedAmount,
 } from '../../components/ui';
 
-const PIE_COLORS = ['#4f7cff', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#22d3ee'];
+const PIE_COLORS = [
+  'var(--primary)',
+  'var(--ok)',
+  'var(--warning)',
+  'var(--danger)',
+  '#8E4EC6',
+  '#12A594',
+];
 
 const SIGNAL_LABEL: Record<
   SignalDTO['kind'],
-  { label: string; tone: 'positive' | 'negative' | 'warning' | 'primary' }
+  { label: string; tone: 'ok' | 'danger' | 'warning' | 'primary' }
 > = {
-  buy: { label: 'Comprar', tone: 'positive' },
-  sell: { label: 'Vender', tone: 'negative' },
+  buy: { label: 'Comprar', tone: 'ok' },
+  sell: { label: 'Vender', tone: 'danger' },
   'near-52w-low': { label: 'Cerca de mín 52w', tone: 'primary' },
   'near-52w-high': { label: 'Cerca de máx 52w', tone: 'warning' },
   'daily-move': { label: 'Movimiento fuerte', tone: 'warning' },
+  custom: { label: 'Señal', tone: 'primary' },
 };
 
+function signalBadge(sig: SignalDTO) {
+  if (sig.kind === 'custom') {
+    return {
+      label: sig.ruleName ?? 'Señal',
+      tone: sig.nature === 'buy' ? ('ok' as const) : ('danger' as const),
+    };
+  }
+  return SIGNAL_LABEL[sig.kind];
+}
+
 export function DashboardPage() {
-  const { user } = useSession();
   const { currency, setCurrency } = useDisplayCurrency();
   const qc = useQueryClient();
 
@@ -78,7 +95,7 @@ export function DashboardPage() {
   return (
     <div>
       <PageHeader
-        title={`Hola, ${user?.displayName ?? ''}`}
+        title="Resumen"
         right={<CurrencyToggle value={currency} onChange={setCurrency} />}
       />
 
@@ -94,7 +111,7 @@ export function DashboardPage() {
             <button
               onClick={() => refresh.mutate()}
               disabled={refresh.isPending}
-              className="p-1 text-muted hover:text-text disabled:opacity-50"
+              className="p-1 text-muted hover:text-fg disabled:opacity-50"
               aria-label="Actualizar cotizaciones"
             >
               <svg
@@ -110,25 +127,32 @@ export function DashboardPage() {
               </svg>
             </button>
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-            <div>
-              <p className="text-[10px] uppercase tracking-wide text-muted">Invertido</p>
-              <p className="text-sm font-semibold tabular-nums">{fmtMoney(s.invested, currency)}</p>
+          {/* vertical: los montos grandes no se aprietan ni se cortan */}
+          <dl className="mt-4 space-y-2">
+            <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
+              <dt className="text-xs text-muted">Invertido</dt>
+              <dd className="text-sm font-semibold tabular-nums">
+                {fmtMoney(s.invested, currency)}
+              </dd>
             </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wide text-muted">No realizado</p>
-              <SignedAmount value={s.unrealized}>
-                <span className="text-sm">{fmtMoney(s.unrealized, currency)}</span>
-              </SignedAmount>
-              <p className="text-[10px] text-muted">{fmtPct(s.unrealizedPct)}</p>
+            <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
+              <dt className="text-xs text-muted">No realizado</dt>
+              <dd className="text-right">
+                <SignedAmount value={s.unrealized}>
+                  <span className="text-sm">{fmtMoney(s.unrealized, currency)}</span>
+                </SignedAmount>
+                <span className="ml-2 text-xs text-muted">{fmtPct(s.unrealizedPct)}</span>
+              </dd>
             </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wide text-muted">Realizado</p>
-              <SignedAmount value={s.realized}>
-                <span className="text-sm">{fmtMoney(s.realized, currency)}</span>
-              </SignedAmount>
+            <div className="flex items-baseline justify-between gap-3">
+              <dt className="text-xs text-muted">Realizado</dt>
+              <dd>
+                <SignedAmount value={s.realized}>
+                  <span className="text-sm">{fmtMoney(s.realized, currency)}</span>
+                </SignedAmount>
+              </dd>
             </div>
-          </div>
+          </dl>
           {s.fx && (
             <p className="mt-3 text-center text-[10px] text-muted">
               Dólar {s.fx.kind.toUpperCase()} {fmtMoney(s.fx.value, 'ARS')} ·{' '}
@@ -146,21 +170,27 @@ export function DashboardPage() {
             <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 10, fill: '#8b93a7' }}
+                tick={{ fontSize: 10, fill: 'var(--muted)' }}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis hide domain={['auto', 'auto']} />
               <Tooltip
                 contentStyle={{
-                  background: '#1b2130',
-                  border: '1px solid #262e40',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
                   borderRadius: 8,
                   fontSize: 12,
                 }}
                 formatter={(v: number) => [fmtMoney(v, currency), 'Valor']}
               />
-              <Line type="monotone" dataKey="value" stroke="#4f7cff" strokeWidth={2} dot={false} />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="var(--primary)"
+                strokeWidth={2}
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         </Card>
@@ -216,9 +246,11 @@ export function DashboardPage() {
                 >
                   <span className="flex items-center gap-2">
                     <span className="font-semibold">{sig.ticker}</span>
-                    <Badge tone={SIGNAL_LABEL[sig.kind].tone}>{SIGNAL_LABEL[sig.kind].label}</Badge>
+                    <Badge tone={signalBadge(sig).tone}>{signalBadge(sig).label}</Badge>
                   </span>
-                  <span className="text-xs text-muted">{sig.message}</span>
+                  <span className="text-right text-xs text-muted" title={sig.description}>
+                    {sig.message}
+                  </span>
                 </Link>
               </li>
             ))}

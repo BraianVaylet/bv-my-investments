@@ -11,6 +11,8 @@ import { authPlugin } from './plugins/auth';
 import { errorsPlugin } from './plugins/errors';
 import { authRoutes } from './modules/auth/routes';
 import { assetsRoutes } from './modules/assets/routes';
+import { corporateEventsRoutes } from './modules/corporate-events/routes';
+import { signalRulesRoutes } from './modules/signal-rules/routes';
 import { mastersRoutes } from './modules/masters/routes';
 import { operationsRoutes } from './modules/operations/routes';
 import { portfolioRoutes } from './modules/portfolio/routes';
@@ -54,6 +56,8 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(quotesRoutes);
       await api.register(statsRoutes);
       await api.register(signalsRoutes);
+      await api.register(signalRulesRoutes);
+      await api.register(corporateEventsRoutes);
       await api.register(settingsRoutes);
 
       // Disparo manual del snapshot (útil para probar y para el cron externo de Railway)

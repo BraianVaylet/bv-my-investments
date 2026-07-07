@@ -10,6 +10,7 @@ import { MorePage } from './features/more/MorePage';
 import { MastersPage } from './features/admin/MastersPage';
 import { AssetsAdminPage } from './features/admin/AssetsAdminPage';
 import { SettingsPage } from './features/admin/SettingsPage';
+import { SignalRulesPage } from './features/admin/SignalRulesPage';
 
 export function App() {
   return (
@@ -32,6 +33,7 @@ export function App() {
           <Route path="/more" element={<MorePage />} />
           <Route path="/admin/masters" element={<MastersPage />} />
           <Route path="/admin/assets" element={<AssetsAdminPage />} />
+          <Route path="/admin/signals" element={<SignalRulesPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

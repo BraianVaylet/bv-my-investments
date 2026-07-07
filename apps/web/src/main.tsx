@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { CurrencyProvider, SessionProvider } from './lib/session';
 import { ApiError } from './lib/api';
+import { ThemeProvider } from './theme/ThemeProvider';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -29,11 +30,13 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <SessionProvider>
-        <CurrencyProvider>
-          <App />
-        </CurrencyProvider>
-      </SessionProvider>
+      <ThemeProvider>
+        <SessionProvider>
+          <CurrencyProvider>
+            <App />
+          </CurrencyProvider>
+        </SessionProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>,
 );

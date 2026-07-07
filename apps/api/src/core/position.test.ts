@@ -121,6 +121,66 @@ describe('replay — WAC', () => {
   });
 });
 
+describe('replay — eventos corporativos (RB-09)', () => {
+  const event = (date: string, factor: number) => ({
+    id: `ev-${date}`,
+    date: new Date(date),
+    factor,
+  });
+
+  it('split 3:1 triplica unidades y divide PPC por 3; invertido invariante', () => {
+    const s = replay([op('buy', 10, 300, '2024-01-01')], [event('2024-02-01', 3)]);
+    expect(s.units).toBe(30);
+    expect(s.avgCost).toBe(100);
+    expect(s.invested).toBe(3000); // no cambia (P8: las métricas no se arruinan)
+  });
+
+  it('cambio de ratio CEDEAR 10→20 duplica unidades; venta posterior usa unidades ajustadas', () => {
+    const s = replay(
+      [op('buy', 100, 50, '2024-01-01'), op('sell', 150, 30, '2024-03-01')],
+      [event('2024-02-01', 2)], // factor = 20/10
+    );
+    // tras el evento: 200 unidades a PPC 25
+    expect(s.units).toBe(50);
+    expect(s.avgCost).toBe(25);
+    expect(s.realized).toBe((30 - 25) * 150);
+  });
+
+  it('la venta anterior al evento no se ve afectada por él', () => {
+    const s = replay(
+      [op('buy', 10, 100, '2024-01-01'), op('sell', 5, 200, '2024-01-15')],
+      [event('2024-02-01', 2)],
+    );
+    expect(s.realized).toBe(500); // (200-100)×5, calculada antes del split
+    expect(s.units).toBe(10); // 5 restantes × 2
+    expect(s.avgCost).toBe(50);
+  });
+
+  it('split inverso (factor < 1) puede dejar ventas sin respaldo → INSUFFICIENT_UNITS', () => {
+    const ops = [op('buy', 10, 100, '2024-01-01'), op('sell', 8, 100, '2024-03-01')];
+    expect(validateOps(ops, [event('2024-02-01', 0.5)])?.code).toBe('INSUFFICIENT_UNITS');
+    expect(validateOps(ops, [event('2024-04-01', 0.5)])).toBeNull(); // después de la venta no rompe
+  });
+
+  it('mismo día: el evento aplica antes que las operaciones de esa fecha', () => {
+    const s = replay(
+      [op('buy', 10, 100, '2024-01-01'), op('sell', 20, 60, '2024-02-01')],
+      [event('2024-02-01', 2)],
+    );
+    expect(s.units).toBe(0);
+    expect(s.realized).toBe((60 - 50) * 20);
+  });
+
+  it('múltiples eventos se componen en orden', () => {
+    const s = replay(
+      [op('buy', 10, 100, '2024-01-01')],
+      [event('2024-02-01', 2), event('2024-03-01', 5)],
+    );
+    expect(s.units).toBe(100);
+    expect(s.avgCost).toBe(10);
+  });
+});
+
 describe('money — redondeo centralizado', () => {
   it('round2 para montos', () => {
     expect(round2(1.005)).toBe(1.01);

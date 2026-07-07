@@ -1,38 +1,80 @@
 @import 'tailwindcss';
 
-/* Tokens BV (dark-first, grilla 8px, Inter) */
-@theme {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-
-  --color-bg: #0b0e14;
-  --color-surface: #131722;
-  --color-surface-2: #1b2130;
-  --color-border: #262e40;
-  --color-text: #e6e9f0;
-  --color-muted: #8b93a7;
-  --color-primary: #4f7cff;
-  --color-primary-hover: #6b91ff;
-  --color-positive: #34d399;
-  --color-negative: #f87171;
-  --color-warning: #fbbf24;
+/* ── Tokens semánticos (claro) ─────────────────────────────────────────────
+   Mismo sistema que bv-personal-finances / bv-easy-archery-battle (docs/DESIGN.md
+   de esos repos). Los `--primary*` los sobrescribe el acento configurable
+   (script anti-FOUC en index.html + ThemeProvider). */
+:root {
+  --bg: #faf9f5;
+  --surface: #ffffff;
+  --surface-2: #f0eee6;
+  --border: #e4e1d7;
+  --fg: #1a1915;
+  --muted: #6b6862;
+  --dim: #9c998f;
+  --primary: #c96442;
+  --primary-strong: #b4543a;
+  --primary-soft: rgba(201, 100, 66, 0.14);
+  --on-primary: #ffffff;
+  --danger: #c0584e;
+  --ok: #4f8a5b;
+  --warning: #b98324;
+  --dot: rgba(60, 52, 36, 0.05);
 }
 
-html {
-  background-color: var(--color-bg);
-  color-scheme: dark;
+[data-theme='dark'] {
+  --bg: #1f1e1d;
+  --surface: #292827;
+  --surface-2: #35332f;
+  --border: #3d3a35;
+  --fg: #f4f2ec;
+  --muted: #aca899;
+  --dim: #6e6b62;
+  --danger: #e0796d;
+  --ok: #7fb389;
+  --warning: #d9a441;
+  --dot: rgba(0, 0, 0, 0.22);
+}
+
+/* ── Mapeo de tokens a utilidades Tailwind (bg-surface, text-muted, …) ────── */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-dim: var(--dim);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary: var(--on-primary);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --color-warning: var(--warning);
+  --font-sans: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
   margin: 0;
+  color: var(--fg);
   font-family: var(--font-sans);
-  background-color: var(--color-bg);
-  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+  background-size: 18px 18px;
 }
 
 /* foco visible consistente (accesibilidad F9) */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: 4px;
 }

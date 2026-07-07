@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { AssetDTO, MasterDTO, OperationDTO, PaginatedDTO } from '@bv/shared';
 import { api, ApiError } from '../../lib/api';
@@ -10,6 +11,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  IconButton,
   ListSkeleton,
   Modal,
   Select,
@@ -121,12 +123,13 @@ export function OperationsPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{op.assetTicker}</span>
-                    <Badge tone={op.type === 'buy' ? 'positive' : 'negative'}>
+                    <Badge tone={op.type === 'buy' ? 'ok' : 'danger'}>
                       {op.type === 'buy' ? 'Compra' : 'Venta'}
                     </Badge>
                   </div>
                   <p className="mt-0.5 text-xs text-muted">
-                    {fmtDate(op.date)} · {op.platformName}
+                    {fmtDate(op.date)} · {op.platformEmoji ? `${op.platformEmoji} ` : ''}
+                    {op.platformName}
                     {op.createdByName ? ` · ${op.createdByName}` : ''}
                   </p>
                   {op.type === 'sell' && op.realized !== undefined && (
@@ -145,19 +148,26 @@ export function OperationsPage() {
                   <p className="font-semibold tabular-nums">
                     {fmtMoney(op.total, op.currencyCode)}
                   </p>
-                  <div className="mt-1 flex justify-end gap-3 text-xs">
-                    <button
-                      className="text-primary"
+                  <div className="mt-1 flex justify-end">
+                    <IconButton
+                      label="Editar operación"
+                      tone="primary"
+                      className="h-8 w-8"
                       onClick={() => {
                         setEditing(op);
                         setFormOpen(true);
                       }}
                     >
-                      Editar
-                    </button>
-                    <button className="text-negative" onClick={() => setDeleting(op)}>
-                      Borrar
-                    </button>
+                      <Pencil size={15} />
+                    </IconButton>
+                    <IconButton
+                      label="Borrar operación"
+                      tone="danger"
+                      className="h-8 w-8"
+                      onClick={() => setDeleting(op)}
+                    >
+                      <Trash2 size={15} />
+                    </IconButton>
                   </div>
                 </div>
               </div>
@@ -196,18 +206,9 @@ export function OperationsPage() {
           setFormOpen(true);
         }}
         aria-label="Nueva operación"
-        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-colors hover:bg-primary-hover"
+        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-on-primary shadow-lg transition-colors hover:bg-primary-strong"
       >
-        <svg
-          width="26"
-          height="26"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M12 5v14M5 12h14" />
-        </svg>
+        <Plus size={26} />
       </button>
 
       <OperationFormModal
@@ -225,7 +226,7 @@ export function OperationsPage() {
           {deleting ? fmtDate(deleting.date) : ''}? Todo lo derivado se recalcula.
         </p>
         {remove.error && (
-          <p className="mt-2 text-sm text-negative">
+          <p className="mt-2 text-sm text-danger">
             {remove.error instanceof ApiError ? remove.error.message : 'No se pudo borrar'}
           </p>
         )}

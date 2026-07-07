@@ -52,6 +52,18 @@ export interface ReplayOp extends OpInput {
   platformId?: string;
 }
 
+/**
+ * Evento corporativo (RB-09): en su fecha multiplica las unidades por `factor`
+ * y divide el PPC por el mismo factor. El capital invertido no cambia y las
+ * operaciones históricas no se tocan. Split 3:1 → factor 3; cambio de ratio
+ * CEDEAR r_viejo → r_nuevo → factor = r_nuevo / r_viejo.
+ */
+export interface CorporateEventInput {
+  id: string;
+  date: Date;
+  factor: number;
+}
+
 /** Orden canónico: fecha ASC, desempate por createdAt ASC (doc 02 §3). */
 export function sortOps<T extends OpInput>(ops: T[]): T[] {
   return [...ops].sort((a, b) => {
@@ -61,8 +73,29 @@ export function sortOps<T extends OpInput>(ops: T[]): T[] {
   });
 }
 
-export function replay(opsUnsorted: ReplayOp[]): PositionState {
-  const ops = sortOps(opsUnsorted);
+type TimelineItem =
+  | { kind: 'op'; date: Date; op: ReplayOp }
+  | { kind: 'event'; date: Date; event: CorporateEventInput };
+
+/** Línea de tiempo: fecha ASC; en el mismo día el evento corporativo aplica primero. */
+function buildTimeline(ops: ReplayOp[], events: CorporateEventInput[]): TimelineItem[] {
+  const items: TimelineItem[] = [
+    ...events.map((event) => ({ kind: 'event' as const, date: event.date, event })),
+    ...sortOps(ops).map((op) => ({ kind: 'op' as const, date: op.date, op })),
+  ];
+  return items.sort((a, b) => {
+    const d = a.date.getTime() - b.date.getTime();
+    if (d !== 0) return d;
+    if (a.kind !== b.kind) return a.kind === 'event' ? -1 : 1;
+    if (a.kind === 'op' && b.kind === 'op') {
+      return (a.op.createdAt?.getTime() ?? 0) - (b.op.createdAt?.getTime() ?? 0);
+    }
+    return 0;
+  });
+}
+
+export function replay(opsUnsorted: ReplayOp[], events: CorporateEventInput[] = []): PositionState {
+  const timeline = buildTimeline(opsUnsorted, events);
   const state: PositionState = {
     units: 0,
     avgCost: 0,
@@ -74,7 +107,20 @@ export function replay(opsUnsorted: ReplayOp[]): PositionState {
     unitsByPlatform: {},
   };
 
-  for (const op of ops) {
+  for (const item of timeline) {
+    if (item.kind === 'event') {
+      const { factor } = item.event;
+      // Ajuste corporativo: unidades × factor, PPC ÷ factor. Invertido invariante.
+      state.units *= factor;
+      state.avgCost = factor !== 0 ? state.avgCost / factor : state.avgCost;
+      state.totalBought *= factor;
+      state.totalSold *= factor;
+      for (const key of Object.keys(state.unitsByPlatform)) {
+        state.unitsByPlatform[key]! *= factor;
+      }
+      continue;
+    }
+    const op = item.op;
     if (op.type === 'buy') {
       const newUnits = state.units + op.units;
       state.avgCost = (state.units * state.avgCost + op.units * op.unitPrice) / newUnits;
@@ -125,9 +171,12 @@ export function replay(opsUnsorted: ReplayOp[]): PositionState {
  * Valida un set de operaciones (RB-02 sobre el set resultante tras alta/edición/borrado).
  * Devuelve el error de dominio en vez de tirarlo, para que el caller decida el status HTTP.
  */
-export function validateOps(ops: ReplayOp[]): DomainError | null {
+export function validateOps(
+  ops: ReplayOp[],
+  events: CorporateEventInput[] = [],
+): DomainError | null {
   try {
-    replay(ops);
+    replay(ops, events);
     return null;
   } catch (err) {
     if (err instanceof DomainError) return err;

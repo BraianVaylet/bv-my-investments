@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Model } from 'mongoose';
 import type { ZodTypeAny } from 'zod';
-import { currencyCreateSchema, masterCreateSchema } from '@bv/shared';
+import { currencyCreateSchema, instrumentTypeCreateSchema, masterCreateSchema } from '@bv/shared';
 import { AppError } from '../../core/errors';
 import { Asset } from '../../models/asset.model';
 import { Currency, InstrumentType, Platform } from '../../models/masters.model';
@@ -24,6 +24,8 @@ function toDTO(doc: any) {
     id: doc.id,
     name: doc.name,
     ...(doc.code !== undefined ? { code: doc.code } : {}),
+    ...(doc.emoji ? { emoji: doc.emoji } : {}),
+    ...(doc.hasRatio !== undefined ? { hasRatio: doc.hasRatio } : {}),
     archived: doc.archived,
   };
 }
@@ -91,7 +93,7 @@ export async function mastersRoutes(app: FastifyInstance) {
   registerMaster(app, {
     prefix: '/instrument-types',
     model: InstrumentType,
-    createSchema: masterCreateSchema,
+    createSchema: instrumentTypeCreateSchema,
     usage: async (id) => ({
       assets: await Asset.countDocuments({ instrumentTypeId: id }),
       operations: 0,
@@ -122,14 +124,23 @@ export async function mastersRoutes(app: FastifyInstance) {
 /** Semillas iniciales (RF-2.5). Idempotente: solo si la colección está vacía. */
 export async function seedMasters() {
   if ((await InstrumentType.countDocuments()) === 0) {
-    await InstrumentType.insertMany(
-      ['Cripto', 'Acción', 'CEDEAR', 'FCI', 'Bono'].map((name) => ({ name })),
-    );
+    await InstrumentType.insertMany([
+      { name: 'Cripto', emoji: '🪙' },
+      { name: 'Acción', emoji: '📈' },
+      { name: 'CEDEAR', emoji: '🌎', hasRatio: true },
+      { name: 'FCI', emoji: '🏦' },
+      { name: 'Bono', emoji: '📜' },
+    ]);
   }
   if ((await Currency.countDocuments()) === 0) {
     await Currency.insertMany([
-      { name: 'Peso argentino', code: 'ARS' },
-      { name: 'Dólar estadounidense', code: 'USD' },
+      { name: 'Peso argentino', code: 'ARS', emoji: '🇦🇷' },
+      { name: 'Dólar estadounidense', code: 'USD', emoji: '🇺🇸' },
     ]);
   }
+  // Backfill para DBs creadas antes de estos campos (idempotente)
+  await InstrumentType.updateOne(
+    { name: 'CEDEAR', hasRatio: { $ne: true } },
+    { $set: { hasRatio: true } },
+  );
 }

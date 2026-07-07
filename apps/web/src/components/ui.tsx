@@ -1,4 +1,5 @@
 import { clsx } from 'clsx';
+import { X } from 'lucide-react';
 import type {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
@@ -20,10 +21,10 @@ export function Button({
     <button
       className={clsx(
         'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-        variant === 'primary' && 'bg-primary text-white hover:bg-primary-hover',
-        variant === 'secondary' && 'bg-surface-2 text-text border border-border hover:border-muted',
-        variant === 'danger' && 'bg-negative/15 text-negative hover:bg-negative/25',
-        variant === 'ghost' && 'text-muted hover:text-text',
+        variant === 'primary' && 'bg-primary text-on-primary hover:bg-primary-strong',
+        variant === 'secondary' && 'bg-surface-2 text-fg border border-border hover:border-muted',
+        variant === 'danger' && 'bg-danger/15 text-danger hover:bg-danger/25',
+        variant === 'ghost' && 'text-muted hover:text-fg',
         className,
       )}
       {...props}
@@ -31,10 +32,40 @@ export function Button({
   );
 }
 
+/** Botón de acción compacto solo-icono (editar/archivar/borrar). Target ≥40px. */
+export function IconButton({
+  label,
+  tone = 'default',
+  className,
+  children,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  label: string;
+  tone?: 'default' | 'primary' | 'danger';
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      className={clsx(
+        'inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors disabled:opacity-50',
+        tone === 'default' && 'text-muted hover:bg-surface-2 hover:text-fg',
+        tone === 'primary' && 'text-primary hover:bg-primary-soft',
+        tone === 'danger' && 'text-danger hover:bg-danger/15',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
 // ---------------------------------------------------------------- Inputs
 
 const inputClass =
-  'w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-muted focus:border-primary focus:outline-none';
+  'w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-fg placeholder:text-dim focus:border-primary focus:outline-none';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   function Input({ className, ...props }, ref) {
@@ -42,10 +73,23 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
   },
 );
 
+/** Select con chevron indicando que es desplegable. */
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(
   function Select({ className, ...props }, ref) {
     return (
-      <select ref={ref} className={clsx(inputClass, 'appearance-none', className)} {...props} />
+      <span className={clsx('relative block', className)}>
+        <select ref={ref} className={clsx(inputClass, 'appearance-none pr-8')} {...props} />
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </span>
     );
   },
 );
@@ -63,7 +107,7 @@ export function Field({
     <label className="block space-y-1">
       <span className="text-xs font-medium text-muted">{label}</span>
       {children}
-      {error && <span className="block text-xs text-negative">{error}</span>}
+      {error && <span className="block text-xs text-danger">{error}</span>}
     </label>
   );
 }
@@ -78,7 +122,7 @@ export function Card({ className, children }: { className?: string; children: Re
   );
 }
 
-type BadgeTone = 'default' | 'positive' | 'negative' | 'warning' | 'primary';
+type BadgeTone = 'default' | 'ok' | 'danger' | 'warning' | 'primary';
 
 export function Badge({ tone = 'default', children }: { tone?: BadgeTone; children: ReactNode }) {
   return (
@@ -86,10 +130,10 @@ export function Badge({ tone = 'default', children }: { tone?: BadgeTone; childr
       className={clsx(
         'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
         tone === 'default' && 'bg-surface-2 text-muted',
-        tone === 'positive' && 'bg-positive/15 text-positive',
-        tone === 'negative' && 'bg-negative/15 text-negative',
+        tone === 'ok' && 'bg-ok/15 text-ok',
+        tone === 'danger' && 'bg-danger/15 text-danger',
         tone === 'warning' && 'bg-warning/15 text-warning',
-        tone === 'primary' && 'bg-primary/15 text-primary',
+        tone === 'primary' && 'bg-primary-soft text-primary',
       )}
     >
       {children}
@@ -106,10 +150,10 @@ export function SignedAmount({ value, children }: { value: number | null; childr
         value === null
           ? 'text-muted'
           : value > 0
-            ? 'text-positive'
+            ? 'text-ok'
             : value < 0
-              ? 'text-negative'
-              : 'text-text',
+              ? 'text-danger'
+              : 'text-fg',
       )}
     >
       {children}
@@ -117,7 +161,7 @@ export function SignedAmount({ value, children }: { value: number | null; childr
   );
 }
 
-// ---------------------------------------------------------------- Estados (RF: carga/vacío/error en toda vista)
+// -------------------------------------------------- Estados (carga/vacío/error en toda vista)
 
 export function Skeleton({ className }: { className?: string }) {
   return <div className={clsx('animate-pulse rounded-lg bg-surface-2', className)} />;
@@ -153,8 +197,8 @@ export function EmptyState({
 
 export function ErrorState({ message, onRetry }: { message?: string; onRetry?: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-negative/30 bg-negative/5 py-8 text-center">
-      <p className="text-sm text-negative">{message ?? 'Algo salió mal'}</p>
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-danger/30 bg-danger/5 py-8 text-center">
+      <p className="text-sm text-danger">{message ?? 'Algo salió mal'}</p>
       {onRetry && (
         <Button variant="secondary" onClick={onRetry}>
           Reintentar
@@ -164,7 +208,7 @@ export function ErrorState({ message, onRetry }: { message?: string; onRetry?: (
   );
 }
 
-// ---------------------------------------------------------------- Modal (mobile-first: sheet desde abajo)
+// ---------------------------------------------------------------- Modal (sheet mobile-first)
 
 export function Modal({
   open,
@@ -198,18 +242,9 @@ export function Modal({
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold">{title}</h2>
-          <button onClick={onClose} className="p-1 text-muted hover:text-text" aria-label="Cerrar">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
+          <IconButton label="Cerrar" onClick={onClose}>
+            <X size={18} />
+          </IconButton>
         </div>
         {children}
       </div>
@@ -233,7 +268,7 @@ export function CurrencyToggle({
           onClick={() => onChange(c)}
           className={clsx(
             'rounded-md px-3 py-1 text-xs font-semibold transition-colors',
-            value === c ? 'bg-primary text-white' : 'text-muted hover:text-text',
+            value === c ? 'bg-primary text-on-primary' : 'text-muted hover:text-fg',
           )}
         >
           {c}

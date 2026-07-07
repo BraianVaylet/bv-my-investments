@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Archive, ArchiveRestore, ChevronLeft, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { AssetDTO, MasterDTO } from '@bv/shared';
@@ -11,6 +12,7 @@ import {
   EmptyState,
   ErrorState,
   Field,
+  IconButton,
   Input,
   ListSkeleton,
   Modal,
@@ -128,17 +130,8 @@ export function AssetsAdminPage() {
       <PageHeader
         title="Activos"
         back={
-          <Link to="/more" className="text-muted hover:text-text" aria-label="Volver">
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
+          <Link to="/more" className="text-muted hover:text-fg" aria-label="Volver">
+            <ChevronLeft size={22} />
           </Link>
         }
         right={<Button onClick={() => setCreating(true)}>Agregar</Button>}
@@ -163,11 +156,14 @@ export function AssetsAdminPage() {
       {query.data && query.data.length > 0 && (
         <div className="space-y-2">
           {query.data.map((a) => (
-            <Card key={a.id} className="flex items-center justify-between py-3">
+            <Card key={a.id} className="flex items-center justify-between py-2 pr-2">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold">{a.ticker}</span>
-                  <Badge>{a.instrumentTypeName}</Badge>
+                  <Badge>
+                    {a.instrumentTypeEmoji ? `${a.instrumentTypeEmoji} ` : ''}
+                    {a.instrumentTypeName}
+                  </Badge>
                   {a.archived && <Badge tone="warning">archivado</Badge>}
                 </div>
                 <p className="text-xs text-muted">
@@ -175,16 +171,19 @@ export function AssetsAdminPage() {
                   {a.cedearRatio ? ` · ratio ${a.cedearRatio}:1` : ''}
                 </p>
               </div>
-              <div className="flex gap-3 text-xs">
-                <button className="text-primary" onClick={() => openEdit(a)}>
-                  Editar
-                </button>
-                <button className="text-muted" onClick={() => toggleArchive.mutate(a)}>
-                  {a.archived ? 'Desarchivar' : 'Archivar'}
-                </button>
-                <button className="text-negative" onClick={() => setDeleting(a)}>
-                  Borrar
-                </button>
+              <div className="flex items-center">
+                <IconButton label="Editar" tone="primary" onClick={() => openEdit(a)}>
+                  <Pencil size={16} />
+                </IconButton>
+                <IconButton
+                  label={a.archived ? 'Desarchivar' : 'Archivar'}
+                  onClick={() => toggleArchive.mutate(a)}
+                >
+                  {a.archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                </IconButton>
+                <IconButton label="Borrar" tone="danger" onClick={() => setDeleting(a)}>
+                  <Trash2 size={16} />
+                </IconButton>
               </div>
             </Card>
           ))}
@@ -229,6 +228,7 @@ export function AssetsAdminPage() {
                 <option value="">Tipo…</option>
                 {(types.data ?? []).map((t) => (
                   <option key={t.id} value={t.id}>
+                    {t.emoji ? `${t.emoji} ` : ''}
                     {t.name}
                   </option>
                 ))}
@@ -243,20 +243,26 @@ export function AssetsAdminPage() {
                 <option value="">Moneda…</option>
                 {(currencies.data ?? []).map((c) => (
                   <option key={c.id} value={c.id}>
+                    {c.emoji ? `${c.emoji} ` : ''}
                     {c.code}
                   </option>
                 ))}
               </Select>
             </Field>
           </div>
-          <Field label="Ratio CEDEAR (opcional, ej. 144)">
-            <Input
-              type="number"
-              step="any"
-              value={form.cedearRatio}
-              onChange={(e) => setForm((f) => ({ ...f, cedearRatio: e.target.value }))}
-            />
-          </Field>
+          {/* el ratio solo aplica a tipos que lo declaran (ej. CEDEAR) */}
+          {(types.data ?? []).find((t) => t.id === form.instrumentTypeId)?.hasRatio && (
+            <Field label="Ratio de conversión (ej. 144 para AMZN 144:1)">
+              <Input
+                type="number"
+                step="any"
+                inputMode="decimal"
+                value={form.cedearRatio}
+                onChange={(e) => setForm((f) => ({ ...f, cedearRatio: e.target.value }))}
+                required
+              />
+            </Field>
+          )}
 
           <details className="rounded-lg border border-border p-3">
             <summary className="cursor-pointer text-xs font-medium text-muted">
@@ -280,7 +286,7 @@ export function AssetsAdminPage() {
           </details>
 
           {save.error && (
-            <p className="text-sm text-negative">
+            <p className="text-sm text-danger">
               {save.error instanceof ApiError ? save.error.message : 'No se pudo guardar'}
             </p>
           )}

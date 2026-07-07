@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { BellRing, ChevronLeft, DollarSign, Rss } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { MasterDTO, SettingsInput } from '@bv/shared';
@@ -37,17 +38,8 @@ export function SettingsPage() {
       <PageHeader
         title="Ajustes"
         back={
-          <Link to="/more" className="text-muted hover:text-text" aria-label="Volver">
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
+          <Link to="/more" className="text-muted hover:text-fg" aria-label="Volver">
+            <ChevronLeft size={22} />
           </Link>
         }
       />
@@ -60,7 +52,9 @@ export function SettingsPage() {
         className="space-y-4"
       >
         <Card className="space-y-4">
-          <h2 className="text-sm font-semibold text-muted">General</h2>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
+            <DollarSign size={16} className="text-primary" /> General
+          </h2>
           <Field label="Tipo de dólar para conversiones (RB-10)">
             <Select
               value={form.fxKind}
@@ -87,7 +81,9 @@ export function SettingsPage() {
         </Card>
 
         <Card className="space-y-4">
-          <h2 className="text-sm font-semibold text-muted">Señales</h2>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
+            <BellRing size={16} className="text-primary" /> Señales automáticas
+          </h2>
           <Field label="Umbral señal de venta (% de rendimiento no realizado)">
             <Input
               type="number"
@@ -115,8 +111,8 @@ export function SettingsPage() {
         </Card>
 
         <Card className="space-y-4">
-          <h2 className="text-sm font-semibold text-muted">
-            Proveedor preferido por tipo de instrumento
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
+            <Rss size={16} className="text-primary" /> Proveedor preferido por tipo de instrumento
           </h2>
           {(types.data ?? []).map((t) => (
             <Field key={t.id} label={t.name}>
@@ -150,11 +146,11 @@ export function SettingsPage() {
         </Card>
 
         {save.error && (
-          <p className="text-sm text-negative">
+          <p className="text-sm text-danger">
             {save.error instanceof ApiError ? save.error.message : 'No se pudo guardar'}
           </p>
         )}
-        {save.isSuccess && <p className="text-sm text-positive">Ajustes guardados.</p>}
+        {save.isSuccess && <p className="text-sm text-ok">Ajustes guardados.</p>}
         <Button type="submit" className="w-full" disabled={save.isPending}>
           {save.isPending ? 'Guardando…' : 'Guardar ajustes'}
         </Button>

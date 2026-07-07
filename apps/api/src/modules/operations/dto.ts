@@ -17,6 +17,8 @@ export function toOperationDTO(doc: any, assetTicker?: string, sellEvent?: SellE
       (typeof doc.assetId === 'object' && doc.assetId ? doc.assetId.ticker : undefined),
     platformId: typeof platform === 'object' && platform ? String(platform._id) : String(platform),
     platformName: typeof platform === 'object' && platform ? platform.name : undefined,
+    platformEmoji:
+      typeof platform === 'object' && platform ? (platform.emoji ?? undefined) : undefined,
     units: round8(doc.units),
     currencyId: typeof currency === 'object' && currency ? String(currency._id) : String(currency),
     currencyCode: typeof currency === 'object' && currency ? currency.code : undefined,

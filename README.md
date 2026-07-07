@@ -56,6 +56,23 @@ date,type,ticker,assetName,instrumentType,platform,currency,units,unitPrice,note
 
 `type` acepta `buy/sell` o `compra/venta`; decimales con punto o coma.
 
+## Backfill del gráfico de evolución
+
+Reconstruye snapshots diarios hacia atrás (hasta ~1 año, límite de los históricos gratuitos) usando
+el histórico de precios de los proveedores y el CCL histórico de ArgentinaDatos. No pisa snapshots
+existentes; cada día guarda el FX usado (RB-10).
+
+```bash
+pnpm --filter @bv/api backfill:snapshots -- --days 365 --dry-run   # ver qué haría
+pnpm --filter @bv/api backfill:snapshots -- --days 365             # reconstruir
+```
+
+## Rango de 52 semanas
+
+Yahoo lo trae nativo; para data912/CoinGecko se calcula en el backend desde el histórico de precios
+y se cachea 24 h (colección `stat52ws`). Alimenta la barra de rango del detalle y las señales de
+cercanía a máximos/mínimos anuales.
+
 ## PWA
 
 Manifest + service worker básico (solo activo en build de producción): instalable en el teléfono,
@@ -110,5 +127,22 @@ packages/shared/  # schemas Zod + DTOs compartidos
 - **RB-06**: el realizado de cada venta se deriva por replay, nunca se persiste — editar una compra vieja recalcula todo.
 - **RB-07**: maestros/activos en uso no se borran (409 `IN_USE` con conteo), se archivan.
 - **RB-10**: conversiones ARS⇄USD con el dólar configurado; cada snapshot guarda el FX usado.
+- **RB-09 (eventos corporativos)**: splits y cambios de ratio CEDEAR se registran como evento
+  (fecha + factor) desde el detalle del activo. El replay multiplica unidades y divide el PPC desde
+  esa fecha; el capital invertido y el realizado no se distorsionan. Alta/borrado validan RB-02.
+
+## Señales configurables
+
+Además de las señales automáticas (precio vs PPC, 52 semanas, movimiento diario), en
+**Más → Señales** se crean reglas propias: nombre + descripción (motivo), naturaleza (compra/venta),
+alcance (general o por activo), umbral porcentual (rendimiento vs PPC) o de precio fijo en ARS/USD,
+y condición (supera / cae debajo). Se pueden pausar sin borrar.
+
+## Diseño
+
+Mismo design system que bv-personal-finances (tokens semánticos en `apps/web/src/index.css`,
+tema claro/oscuro con `data-theme` + script anti-FOUC, acento configurable con 6 colores persistido
+en `localStorage`, Hanken Grotesk, lucide-react). Los maestros aceptan emoji y los tipos de
+instrumento declaran si requieren ratio (el alta de activos lo pide solo en ese caso).
 
 > Disclaimer: la app informa, no da asesoramiento financiero.

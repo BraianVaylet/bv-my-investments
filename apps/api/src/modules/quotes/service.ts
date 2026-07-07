@@ -1,5 +1,7 @@
 import { Types } from 'mongoose';
 import { QuoteCache } from '../../models/quoteCache.model';
+import { Stat52w } from '../../models/stat52w.model';
+import { getPriceHistory } from './history';
 import { getSettings } from '../../models/settings.model';
 import { argentinaDatosProvider } from '../../providers/argentinadatos';
 import { binanceProvider } from '../../providers/binance';
@@ -102,7 +104,10 @@ export async function getQuotes(
       pending.push(asset);
     }
   }
-  if (pending.length === 0) return result;
+  if (pending.length === 0) {
+    await enrich52w(assets, result);
+    return result;
+  }
 
   // Agrupar por cadena de proveedores (preferido del tipo primero)
   const groups = new Map<string, { chain: string[]; assets: ProviderAsset[] }>();
@@ -175,7 +180,58 @@ export async function getQuotes(
     }
   }
 
+  await enrich52w(assets, result);
   return result;
+}
+
+const STAT_52W_TTL_MS = 24 * 60 * 60 * 1000; // dato lento (doc 03 §3.4)
+
+/**
+ * Completa high52/low52 cuando el proveedor no los trae (data912, CoinGecko):
+ * los calcula del histórico de precios y cachea 24 h. Solo se aplican si la
+ * moneda del histórico coincide con la de la cotización (evita rangos falsos).
+ */
+async function enrich52w(
+  assets: ProviderAsset[],
+  result: Map<string, ResolvedQuote>,
+): Promise<void> {
+  const missing = assets.filter((a) => {
+    const q = result.get(a.id);
+    return q && (q.high52 === undefined || q.low52 === undefined);
+  });
+  if (missing.length === 0) return;
+
+  const cached = await Stat52w.find({ assetId: { $in: missing.map((a) => a.id) } });
+  const cacheByAsset = new Map(cached.map((c) => [String(c.assetId), c]));
+
+  await Promise.all(
+    missing.map(async (asset) => {
+      const quote = result.get(asset.id)!;
+      const hit = cacheByAsset.get(asset.id);
+      if (hit && Date.now() - hit.computedAt.getTime() < STAT_52W_TTL_MS) {
+        if (hit.currency === quote.currency) {
+          quote.high52 ??= hit.high52;
+          quote.low52 ??= hit.low52;
+        }
+        return;
+      }
+      const history = await getPriceHistory(asset, 365);
+      // menos de ~1 mes de datos no es un rango anual representativo
+      if (!history || history.points.length < 30) return;
+      const prices = history.points.map((p) => p.price);
+      const high52 = Math.max(...prices);
+      const low52 = Math.min(...prices);
+      await Stat52w.updateOne(
+        { assetId: new Types.ObjectId(asset.id) },
+        { $set: { high52, low52, currency: history.currency, computedAt: new Date() } },
+        { upsert: true },
+      );
+      if (history.currency === quote.currency) {
+        quote.high52 ??= high52;
+        quote.low52 ??= low52;
+      }
+    }),
+  );
 }
 
 /** Convierte un doc de Asset populado al shape que consumen los providers. */

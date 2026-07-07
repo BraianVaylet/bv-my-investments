@@ -10,7 +10,8 @@ import { Button, Field, Input } from '../../components/ui';
 function AuthShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6 py-10">
-      <div className="mb-8 text-center">
+      <div className="mb-8 flex flex-col items-center text-center">
+        <img src="/icon.svg" alt="BV Invest" className="mb-3 h-14 w-14 rounded-xl" />
         <p className="text-3xl font-bold tracking-tight">
           BV <span className="text-primary">Invest</span>
         </p>
@@ -46,7 +47,7 @@ export function LoginPage() {
           <Input type="password" autoComplete="current-password" {...form.register('password')} />
         </Field>
         {login.error && (
-          <p className="text-sm text-negative">
+          <p className="text-sm text-danger">
             {login.error instanceof ApiError ? login.error.message : 'Error al ingresar'}
           </p>
         )}
@@ -93,7 +94,7 @@ export function RegisterPage() {
           <Input {...form.register('inviteToken')} />
         </Field>
         {register.error && (
-          <p className="text-sm text-negative">
+          <p className="text-sm text-danger">
             {register.error instanceof ApiError ? register.error.message : 'Error al registrarse'}
           </p>
         )}

@@ -4,8 +4,8 @@
   "description": "Gestión y seguimiento de inversiones personales",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b0e14",
-  "theme_color": "#0b0e14",
+  "background_color": "#1f1e1d",
+  "theme_color": "#1f1e1d",
   "lang": "es",
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },

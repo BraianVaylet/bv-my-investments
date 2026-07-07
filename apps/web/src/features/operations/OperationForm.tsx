@@ -114,8 +114,8 @@ export function OperationFormModal({
               className={`rounded-md py-2 text-sm font-semibold transition-colors ${
                 type === t
                   ? t === 'buy'
-                    ? 'bg-positive/20 text-positive'
-                    : 'bg-negative/20 text-negative'
+                    ? 'bg-ok/20 text-ok'
+                    : 'bg-danger/20 text-danger'
                   : 'text-muted'
               }`}
             >
@@ -137,9 +137,9 @@ export function OperationFormModal({
 
         {type === 'sell' && position && (
           <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs text-muted">
-            Tenencia disponible: <strong className="text-text">{fmtUnits(position.units)}</strong> ·
+            Tenencia disponible: <strong className="text-fg">{fmtUnits(position.units)}</strong> ·
             PPC vigente:{' '}
-            <strong className="text-text">{fmtMoney(position.avgCost, position.opCurrency)}</strong>
+            <strong className="text-fg">{fmtMoney(position.avgCost, position.opCurrency)}</strong>
           </p>
         )}
 
@@ -148,6 +148,7 @@ export function OperationFormModal({
             <option value="">Elegí una plataforma…</option>
             {(platforms.data ?? []).map((p) => (
               <option key={p.id} value={p.id}>
+                {p.emoji ? `${p.emoji} ` : ''}
                 {p.name}
               </option>
             ))}
@@ -184,6 +185,7 @@ export function OperationFormModal({
               <option value="">Moneda…</option>
               {(currencies.data ?? []).map((c) => (
                 <option key={c.id} value={c.id}>
+                  {c.emoji ? `${c.emoji} ` : ''}
                   {c.code}
                 </option>
               ))}
@@ -199,7 +201,7 @@ export function OperationFormModal({
         </Field>
 
         {save.error && (
-          <p className="text-sm text-negative">
+          <p className="text-sm text-danger">
             {save.error instanceof ApiError ? save.error.message : 'No se pudo guardar'}
           </p>
         )}
