@@ -85,6 +85,28 @@ export function deriveAccent(hex: string, mode: ThemeMode): DerivedAccent {
   return { primary: toHex(base), strong: toHex(strong), soft, onPrimary };
 }
 
+/** Favicon SVG (data-URI) con el trazo en el color de acento — igual que el logo. */
+export function faviconDataUri(primaryHex: string): string {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">` +
+    `<rect width="512" height="512" rx="112" fill="#1f1e1d"/>` +
+    `<path d="M116 348 L204 244 L262 296 L398 148" fill="none" stroke="${primaryHex}" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<path d="M398 148 L398 224 M398 148 L322 148" fill="none" stroke="${primaryHex}" stroke-width="34" stroke-linecap="round"/>` +
+    `<circle cx="116" cy="348" r="24" fill="#7fb389"/></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+export function applyFavicon(primaryHex: string): void {
+  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.type = 'image/svg+xml';
+  link.href = faviconDataUri(primaryHex);
+}
+
 export function applyAccent(hex: string, mode: ThemeMode): void {
   const d = deriveAccent(hex, mode);
   const el = document.documentElement;
@@ -92,6 +114,7 @@ export function applyAccent(hex: string, mode: ThemeMode): void {
   el.style.setProperty('--primary-strong', d.strong);
   el.style.setProperty('--primary-soft', d.soft);
   el.style.setProperty('--on-primary', d.onPrimary);
+  applyFavicon(d.primary);
 }
 
 export function applyTheme(mode: ThemeMode, accentHex: string): void {

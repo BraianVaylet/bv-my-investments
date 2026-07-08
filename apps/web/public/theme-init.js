@@ -39,10 +39,25 @@
       );
     };
     var el = document.documentElement;
-    el.style.setProperty('--primary', hx(pr, pg, pb));
+    var primary = hx(pr, pg, pb);
+    el.style.setProperty('--primary', primary);
     el.style.setProperty('--primary-strong', hx(sr, sg, sb));
     el.style.setProperty('--primary-soft', 'rgba(' + pr + ', ' + pg + ', ' + pb + ', 0.16)');
     el.style.setProperty('--on-primary', lum > 0.45 ? '#10100f' : '#ffffff');
+
+    // Favicon con el trazo en el color de acento (igual que el logo), sin flash
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
+      '<rect width="512" height="512" rx="112" fill="#1f1e1d"/>' +
+      '<path d="M116 348 L204 244 L262 296 L398 148" fill="none" stroke="' +
+      primary +
+      '" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<path d="M398 148 L398 224 M398 148 L322 148" fill="none" stroke="' +
+      primary +
+      '" stroke-width="34" stroke-linecap="round"/>' +
+      '<circle cx="116" cy="348" r="24" fill="#7fb389"/></svg>';
+    var icon = document.querySelector('link[rel="icon"]');
+    if (icon) icon.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
   } catch (e) {
     /* sin storage: defaults del CSS */
   }

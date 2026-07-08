@@ -3,6 +3,7 @@ import { ArrowDownUp, ChartPie, ChartColumn, House, Ellipsis } from 'lucide-reac
 import type { ReactNode } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useSession } from '../lib/session';
+import { Logo } from './Logo';
 import { AccentMenu, ThemeToggle } from './ThemeControls';
 
 const tabs = [
@@ -20,7 +21,7 @@ export function Layout() {
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
       <header className="flex items-center justify-between px-4 pt-4">
         <div className="flex items-center gap-3">
-          <img src="/icon.svg" alt="BV Invest" className="h-10 w-10 rounded-md" />
+          <Logo className="h-10 w-10 rounded-md" />
           <div>
             <p className="text-lg font-semibold leading-tight text-fg">BV Invest</p>
             {user && <p className="text-xs text-dim">Hola, {user.displayName}</p>}
