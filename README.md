@@ -92,8 +92,15 @@ subir el número en `CACHE` de [apps/web/public/sw.js](apps/web/public/sw.js).
 
 ## Deploy (Railway)
 
-1. Servicio Node: build `pnpm install && pnpm build`, start `node apps/api/dist/index.js`, con `NODE_ENV=production`.
-   La API sirve el build del FE (`apps/web/dist`) con cache correcto (assets `immutable`, API `no-store`).
+El repo trae un [Dockerfile](Dockerfile) + [railway.json](railway.json): Railway lo usa directo
+(builder `DOCKERFILE`), sin Nixpacks/Corepack. El Dockerfile fija Node 22 + pnpm 11, instala con
+`--frozen-lockfile --prod=false` (incluye devDeps para compilar) y corre `pnpm build` en orden
+topológico (shared → api → web).
+
+> Se usa Dockerfile a propósito: Nixpacks invoca pnpm vía Corepack, que en Node 22 falla con
+> `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING`. El Dockerfile instala pnpm directo y evita el bug.
+
+1. La API sirve el build del FE (`apps/web/dist`) con cache correcto (assets `immutable`, API `no-store`).
 2. MongoDB: plugin de Railway o Atlas M0 (recomendado: sobrevive migraciones de hosting).
 3. Snapshot diario: cron interno a las 21:00 ART (requiere sleep apagado) o cron externo de Railway
    llamando `POST /api/snapshots/run`.
