@@ -62,6 +62,9 @@ export const authPlugin = fp(async (app: FastifyInstance) => {
       }
     }
 
+    // El guard solo protege la API. Los estáticos del FE (index.html, /assets,
+    // rutas del SPA) son públicos: los sirve @fastify/static / el notFoundHandler.
+    if (!request.url.startsWith('/api')) return;
     if (request.routeOptions.config?.public) return;
     if (!request.user) {
       throw new AppError(401, 'UNAUTHORIZED', 'Sesión requerida');
