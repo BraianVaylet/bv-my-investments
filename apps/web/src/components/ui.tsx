@@ -2,11 +2,12 @@ import { clsx } from 'clsx';
 import { X } from 'lucide-react';
 import type {
   ButtonHTMLAttributes,
+  ChangeEvent,
   InputHTMLAttributes,
   ReactNode,
   SelectHTMLAttributes,
 } from 'react';
-import { forwardRef, useEffect } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 
 // ---------------------------------------------------------------- Button
 
@@ -64,6 +65,31 @@ export function IconButton({
 
 // ---------------------------------------------------------------- Inputs
 
+function formatNumericTyping(raw: string, maxDecimals: number): string {
+  let s = raw.replace(/[^\d,]/g, '');
+  const firstComma = s.indexOf(',');
+  if (firstComma !== -1) {
+    s = s.slice(0, firstComma + 1) + s.slice(firstComma + 1).replace(/,/g, '');
+  }
+  const [intPart = '', decPart] = s.split(',');
+  const intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return decPart !== undefined ? `${intFmt},${decPart.slice(0, maxDecimals)}` : intFmt;
+}
+
+function numToDisplay(value: number | string | undefined, maxDecimals: number): string {
+  if (value === undefined || value === null || value === '') return '';
+  const n = typeof value === 'number' ? value : parseFloat(String(value));
+  if (!Number.isFinite(n)) return '';
+  return new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxDecimals,
+  }).format(n);
+}
+
+function displayToRaw(formatted: string): string {
+  return formatted.replace(/\./g, '').replace(',', '.');
+}
+
 const inputClass =
   'w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-fg placeholder:text-dim focus:border-primary focus:outline-none';
 
@@ -72,6 +98,53 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
     return <input ref={ref} className={clsx(inputClass, className)} {...props} />;
   },
 );
+
+/** Input numérico con formato es-AR (. miles, , decimal) al tipear. */
+export const NumericInput = forwardRef<
+  HTMLInputElement,
+  Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'type'> & {
+    onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+    maxDecimals?: number;
+  }
+>(function NumericInput({ value, onChange, onBlur, maxDecimals = 8, ...props }, ref) {
+  const [display, setDisplay] = useState(() => numToDisplay(value as number | string, maxDecimals));
+  const focused = useRef(false);
+
+  useEffect(() => {
+    if (!focused.current) {
+      setDisplay(numToDisplay(value as number | string, maxDecimals));
+    }
+  }, [value, maxDecimals]);
+
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
+    const formatted = formatNumericTyping(e.target.value, maxDecimals);
+    setDisplay(formatted);
+    if (onChange) {
+      const raw = displayToRaw(formatted);
+      onChange({ ...e, target: { ...e.target, value: raw } } as ChangeEvent<HTMLInputElement>);
+    }
+  }
+
+  function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
+    focused.current = false;
+    const raw = displayToRaw(display);
+    setDisplay(numToDisplay(raw === '' ? undefined : raw, maxDecimals));
+    onBlur?.(e);
+  }
+
+  return (
+    <Input
+      ref={ref}
+      type="text"
+      inputMode="decimal"
+      value={display}
+      onChange={handleChange}
+      onFocus={() => { focused.current = true; }}
+      onBlur={handleBlur}
+      {...props}
+    />
+  );
+});
 
 /** Select con chevron indicando que es desplegable. */
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(

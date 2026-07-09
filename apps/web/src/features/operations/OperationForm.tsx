@@ -1,11 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { AssetDetailDTO, AssetDTO, MasterDTO, OperationDTO } from '@bv/shared';
 import { api, ApiError } from '../../lib/api';
 import { fmtMoney, fmtUnits, toInputDate } from '../../lib/format';
-import { Button, Field, Input, Modal, Select } from '../../components/ui';
+import { Button, Field, Input, Modal, NumericInput, Select } from '../../components/ui';
 
 // Schema del form: strings de inputs → números/fechas
 const formSchema = z.object({
@@ -157,15 +157,33 @@ export function OperationFormModal({
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Unidades" error={form.formState.errors.units?.message}>
-            <Input type="number" step="any" inputMode="decimal" {...form.register('units')} />
+            <Controller
+              name="units"
+              control={form.control}
+              render={({ field }) => (
+                <NumericInput
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  maxDecimals={8}
+                  placeholder="Ej: 0,5"
+                />
+              )}
+            />
           </Field>
           <Field label="Precio unitario" error={form.formState.errors.unitPrice?.message}>
-            <Input
-              type="number"
-              step="any"
-              inputMode="decimal"
-              placeholder={currentPrice ? String(currentPrice) : undefined}
-              {...form.register('unitPrice')}
+            <Controller
+              name="unitPrice"
+              control={form.control}
+              render={({ field }) => (
+                <NumericInput
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  maxDecimals={4}
+                  placeholder={currentPrice ? String(currentPrice) : undefined}
+                />
+              )}
             />
           </Field>
         </div>

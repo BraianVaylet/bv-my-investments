@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import type { MasterDTO, SettingsInput } from '@bv/shared';
 import { api, ApiError } from '../../lib/api';
 import { PageHeader } from '../../components/Layout';
-import { Button, Card, ErrorState, Field, Input, ListSkeleton, Select } from '../../components/ui';
+import { Button, Card, ErrorState, Field, Input, ListSkeleton, NumericInput, Select } from '../../components/ui';
 
 const PROVIDERS = ['data912', 'coingecko', 'binance', 'criptoya', 'yahoo', 'argentinadatos'];
 
@@ -85,25 +85,22 @@ export function SettingsPage() {
             <BellRing size={16} className="text-primary" /> Señales automáticas
           </h2>
           <Field label="Umbral señal de venta (% de rendimiento no realizado)">
-            <Input
-              type="number"
-              step="any"
+            <NumericInput
+              maxDecimals={2}
               value={form.sellSignalPct}
               onChange={(e) => setForm({ ...form, sellSignalPct: Number(e.target.value) })}
             />
           </Field>
           <Field label="Cercanía a extremos de 52 semanas (%)">
-            <Input
-              type="number"
-              step="any"
+            <NumericInput
+              maxDecimals={2}
               value={form.near52wPct}
               onChange={(e) => setForm({ ...form, near52wPct: Number(e.target.value) })}
             />
           </Field>
           <Field label="Variación diaria fuerte (%)">
-            <Input
-              type="number"
-              step="any"
+            <NumericInput
+              maxDecimals={2}
               value={form.dailyMovePct}
               onChange={(e) => setForm({ ...form, dailyMovePct: Number(e.target.value) })}
             />

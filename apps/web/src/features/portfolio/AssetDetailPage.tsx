@@ -33,6 +33,7 @@ import {
   Input,
   ListSkeleton,
   Modal,
+  NumericInput,
   Select,
   SignedAmount,
 } from '../../components/ui';
@@ -245,10 +246,8 @@ function CorporateEventsSection({
               />
             </Field>
             <Field label="Factor">
-              <Input
-                type="number"
-                step="any"
-                inputMode="decimal"
+              <NumericInput
+                maxDecimals={4}
                 placeholder="Ej: 3"
                 value={form.factor}
                 onChange={(e) => setForm({ ...form, factor: e.target.value })}

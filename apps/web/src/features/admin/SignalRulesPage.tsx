@@ -17,6 +17,7 @@ import {
   Input,
   ListSkeleton,
   Modal,
+  NumericInput,
   Select,
 } from '../../components/ui';
 
@@ -282,10 +283,8 @@ export function SignalRulesPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <Field label={form.thresholdType === 'percent' ? 'Umbral (%)' : 'Umbral (precio)'}>
-              <Input
-                type="number"
-                step="any"
-                inputMode="decimal"
+              <NumericInput
+                maxDecimals={4}
                 value={form.value}
                 onChange={(e) => setForm({ ...form, value: e.target.value })}
                 required

@@ -16,6 +16,7 @@ import {
   Input,
   ListSkeleton,
   Modal,
+  NumericInput,
   Select,
 } from '../../components/ui';
 
@@ -253,10 +254,8 @@ export function AssetsAdminPage() {
           {/* el ratio solo aplica a tipos que lo declaran (ej. CEDEAR) */}
           {(types.data ?? []).find((t) => t.id === form.instrumentTypeId)?.hasRatio && (
             <Field label="Ratio de conversión (ej. 144 para AMZN 144:1)">
-              <Input
-                type="number"
-                step="any"
-                inputMode="decimal"
+              <NumericInput
+                maxDecimals={4}
                 value={form.cedearRatio}
                 onChange={(e) => setForm((f) => ({ ...f, cedearRatio: e.target.value }))}
                 required
