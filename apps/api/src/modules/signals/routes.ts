@@ -87,7 +87,7 @@ export async function signalsRoutes(app: FastifyInstance) {
       const sameCurrency = quote.currency === r.opCurrencyCode;
 
       // RF-8.1: comprar si precio actual < PPC
-      if (sameCurrency && state.avgCost > 0 && quote.price < state.avgCost) {
+      if (settings.buySignalEnabled && sameCurrency && state.avgCost > 0 && quote.price < state.avgCost) {
         const pct = ((state.avgCost - quote.price) / state.avgCost) * 100;
         signals.push({
           ...base,
@@ -98,7 +98,7 @@ export async function signalsRoutes(app: FastifyInstance) {
       }
 
       // RF-8.2: vender si rendimiento no realizado > umbral
-      if (sameCurrency && state.avgCost > 0) {
+      if (settings.sellSignalEnabled && sameCurrency && state.avgCost > 0) {
         const pct = ((quote.price - state.avgCost) / state.avgCost) * 100;
         if (pct > settings.sellSignalPct) {
           signals.push({
@@ -111,7 +111,7 @@ export async function signalsRoutes(app: FastifyInstance) {
       }
 
       // RF-8.3: cercanía a extremos de 52 semanas
-      if (quote.low52 && quote.low52 > 0) {
+      if (settings.near52wEnabled && quote.low52 && quote.low52 > 0) {
         const pct = ((quote.price - quote.low52) / quote.low52) * 100;
         if (pct >= 0 && pct <= settings.near52wPct) {
           signals.push({
@@ -122,7 +122,7 @@ export async function signalsRoutes(app: FastifyInstance) {
           });
         }
       }
-      if (quote.high52 && quote.high52 > 0) {
+      if (settings.near52wEnabled && quote.high52 && quote.high52 > 0) {
         const pct = ((quote.high52 - quote.price) / quote.high52) * 100;
         if (pct >= 0 && pct <= settings.near52wPct) {
           signals.push({
@@ -135,7 +135,11 @@ export async function signalsRoutes(app: FastifyInstance) {
       }
 
       // RF-8.3: variación diaria fuerte
-      if (quote.changePct !== undefined && Math.abs(quote.changePct) >= settings.dailyMovePct) {
+      if (
+        settings.dailyMoveEnabled &&
+        quote.changePct !== undefined &&
+        Math.abs(quote.changePct) >= settings.dailyMovePct
+      ) {
         signals.push({
           ...base,
           kind: 'daily-move',

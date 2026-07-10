@@ -144,8 +144,12 @@ export const signalRuleSchema = z
 export const settingsSchema = z.object({
   preferredProviders: z.record(z.string()).default({}),
   fxKind: z.enum(FX_KINDS).default('ccl'),
+  buySignalEnabled: z.boolean().default(true),
+  sellSignalEnabled: z.boolean().default(true),
   sellSignalPct: z.number().min(0).max(10000).default(80),
+  near52wEnabled: z.boolean().default(true),
   near52wPct: z.number().min(0).max(100).default(5),
+  dailyMoveEnabled: z.boolean().default(true),
   dailyMovePct: z.number().min(0).max(100).default(5),
   defaultDisplayCurrency: z.enum(DISPLAY_CURRENCIES).default('ARS'),
 });

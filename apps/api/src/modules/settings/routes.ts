@@ -6,8 +6,12 @@ function toDTO(doc: any) {
   return {
     preferredProviders: Object.fromEntries(doc.preferredProviders ?? new Map()),
     fxKind: doc.fxKind,
+    buySignalEnabled: doc.buySignalEnabled,
+    sellSignalEnabled: doc.sellSignalEnabled,
     sellSignalPct: doc.sellSignalPct,
+    near52wEnabled: doc.near52wEnabled,
     near52wPct: doc.near52wPct,
+    dailyMoveEnabled: doc.dailyMoveEnabled,
     dailyMovePct: doc.dailyMovePct,
     defaultDisplayCurrency: doc.defaultDisplayCurrency,
   };

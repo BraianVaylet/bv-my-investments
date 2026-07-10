@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BellRing, ChevronLeft, DollarSign, Rss } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { MasterDTO, SettingsInput } from '@bv/shared';
 import { api, ApiError } from '../../lib/api';
@@ -8,6 +8,34 @@ import { PageHeader } from '../../components/Layout';
 import { Button, Card, ErrorState, Field, Input, ListSkeleton, NumericInput, Select } from '../../components/ui';
 
 const PROVIDERS = ['data912', 'coingecko', 'binance', 'criptoya', 'yahoo', 'argentinadatos'];
+
+/** Señal automática con su interruptor; el umbral solo se muestra si está activa. */
+function SignalToggle({
+  title,
+  checked,
+  onChange,
+  children,
+}: {
+  title: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="space-y-3 rounded-lg border border-border bg-surface-2 p-3">
+      <label className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          className="h-4 w-4 accent-[var(--primary)]"
+        />
+        <span className="text-sm font-medium">{title}</span>
+      </label>
+      {checked && children}
+    </div>
+  );
+}
 
 export function SettingsPage() {
   const qc = useQueryClient();
@@ -84,27 +112,61 @@ export function SettingsPage() {
           <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
             <BellRing size={16} className="text-primary" /> Señales automáticas
           </h2>
-          <Field label="Umbral señal de venta (% de rendimiento no realizado)">
-            <NumericInput
-              maxDecimals={2}
-              value={form.sellSignalPct}
-              onChange={(e) => setForm({ ...form, sellSignalPct: Number(e.target.value) })}
-            />
-          </Field>
-          <Field label="Cercanía a extremos de 52 semanas (%)">
-            <NumericInput
-              maxDecimals={2}
-              value={form.near52wPct}
-              onChange={(e) => setForm({ ...form, near52wPct: Number(e.target.value) })}
-            />
-          </Field>
-          <Field label="Variación diaria fuerte (%)">
-            <NumericInput
-              maxDecimals={2}
-              value={form.dailyMovePct}
-              onChange={(e) => setForm({ ...form, dailyMovePct: Number(e.target.value) })}
-            />
-          </Field>
+          <p className="text-xs text-muted">
+            Las que desactives dejan de aparecer en el inicio. Tus reglas propias se administran en{' '}
+            <Link to="/admin/signals" className="text-primary hover:underline">
+              Señales
+            </Link>
+            .
+          </p>
+
+          <SignalToggle
+            title="Compra: precio por debajo del PPC"
+            checked={form.buySignalEnabled}
+            onChange={(v) => setForm({ ...form, buySignalEnabled: v })}
+          />
+
+          <SignalToggle
+            title="Venta: rendimiento no realizado sobre el umbral"
+            checked={form.sellSignalEnabled}
+            onChange={(v) => setForm({ ...form, sellSignalEnabled: v })}
+          >
+            <Field label="Umbral señal de venta (% de rendimiento no realizado)">
+              <NumericInput
+                maxDecimals={2}
+                value={form.sellSignalPct}
+                onChange={(e) => setForm({ ...form, sellSignalPct: Number(e.target.value) })}
+              />
+            </Field>
+          </SignalToggle>
+
+          <SignalToggle
+            title="Cercanía a extremos de 52 semanas"
+            checked={form.near52wEnabled}
+            onChange={(v) => setForm({ ...form, near52wEnabled: v })}
+          >
+            <Field label="Cercanía a extremos de 52 semanas (%)">
+              <NumericInput
+                maxDecimals={2}
+                value={form.near52wPct}
+                onChange={(e) => setForm({ ...form, near52wPct: Number(e.target.value) })}
+              />
+            </Field>
+          </SignalToggle>
+
+          <SignalToggle
+            title="Variación diaria fuerte"
+            checked={form.dailyMoveEnabled}
+            onChange={(v) => setForm({ ...form, dailyMoveEnabled: v })}
+          >
+            <Field label="Variación diaria fuerte (%)">
+              <NumericInput
+                maxDecimals={2}
+                value={form.dailyMovePct}
+                onChange={(e) => setForm({ ...form, dailyMovePct: Number(e.target.value) })}
+              />
+            </Field>
+          </SignalToggle>
         </Card>
 
         <Card className="space-y-4">
