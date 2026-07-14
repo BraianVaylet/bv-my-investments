@@ -10,21 +10,22 @@ import {
 
 interface ThemeCtx {
   mode: ThemeMode;
-  accent: string;
+  /** Hex elegido, o null = acento nativo de medano-ui (brasa). */
+  accent: string | null;
   setMode: (m: ThemeMode) => void;
   setAccent: (hex: string) => void;
 }
 
 const ThemeContext = createContext<ThemeCtx>({
   mode: 'dark',
-  accent: '#C96442',
+  accent: null,
   setMode: () => {},
   setAccent: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>(getInitialTheme);
-  const [accent, setAccentState] = useState<string>(getInitialAccent);
+  const [accent, setAccentState] = useState<string | null>(getInitialAccent);
 
   useEffect(() => {
     applyTheme(mode, accent);

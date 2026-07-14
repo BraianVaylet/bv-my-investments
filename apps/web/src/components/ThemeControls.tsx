@@ -43,7 +43,7 @@ export function AccentMenu() {
               style={{
                 background: a.hex,
                 borderColor:
-                  accent.toLowerCase() === a.hex.toLowerCase() ? 'var(--fg)' : 'transparent',
+                  accent?.toLowerCase() === a.hex.toLowerCase() ? 'var(--fg)' : 'transparent',
               }}
             />
           ))}
