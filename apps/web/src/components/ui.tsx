@@ -1,3 +1,15 @@
+import {
+  Badge as MedanoBadge,
+  type BadgeTone as MedanoBadgeTone,
+  Button as MedanoButton,
+  type ButtonProps as MedanoButtonProps,
+  Card as MedanoCard,
+  EmptyState as MedanoEmptyState,
+  IconButton as MedanoIconButton,
+  SegmentedControl,
+  Skeleton as MedanoSkeleton,
+  Alert as MedanoAlert,
+} from '@medano-ui/react';
 import { clsx } from 'clsx';
 import { X } from 'lucide-react';
 import type {
@@ -11,26 +23,9 @@ import { forwardRef, useEffect, useRef, useState } from 'react';
 
 // ---------------------------------------------------------------- Button
 
-type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
-
-export function Button({
-  variant = 'primary',
-  className,
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
-  return (
-    <button
-      className={clsx(
-        'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-        variant === 'primary' && 'bg-primary text-on-primary hover:bg-primary-strong',
-        variant === 'secondary' && 'bg-surface-2 text-fg border border-border hover:border-muted',
-        variant === 'danger' && 'bg-danger/15 text-danger hover:bg-danger/25',
-        variant === 'ghost' && 'text-muted hover:text-fg',
-        className,
-      )}
-      {...props}
-    />
-  );
+/** Adapter sobre medano-ui (firma legacy sin size/loading). */
+export function Button(props: MedanoButtonProps) {
+  return <MedanoButton {...props} />;
 }
 
 /** Botón de acción compacto solo-icono (editar/archivar/borrar). Target ≥40px. */
@@ -45,21 +40,19 @@ export function IconButton({
   tone?: 'default' | 'primary' | 'danger';
 }) {
   return (
-    <button
-      type="button"
+    <MedanoIconButton
       aria-label={label}
       title={label}
+      variant="ghost"
       className={clsx(
-        'inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors disabled:opacity-50',
-        tone === 'default' && 'text-muted hover:bg-surface-2 hover:text-fg',
-        tone === 'primary' && 'text-primary hover:bg-primary-soft',
-        tone === 'danger' && 'text-danger hover:bg-danger/15',
+        tone === 'primary' && 'text-primary',
+        tone === 'danger' && 'text-danger',
         className,
       )}
       {...props}
     >
       {children}
-    </button>
+    </MedanoIconButton>
   );
 }
 
@@ -90,8 +83,9 @@ function displayToRaw(formatted: string): string {
   return formatted.replace(/\./g, '').replace(',', '.');
 }
 
-const inputClass =
-  'w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-fg placeholder:text-dim focus:border-primary focus:outline-none';
+/* Clases públicas de medano-ui: mismo look que sus campos sin el wrapper
+ * Field (el patrón legacy asocia label/error a mano en <Field>). */
+const inputClass = 'medano-field__input w-full';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   function Input({ className, ...props }, ref) {
@@ -139,7 +133,9 @@ export const NumericInput = forwardRef<
       inputMode="decimal"
       value={display}
       onChange={handleChange}
-      onFocus={() => { focused.current = true; }}
+      onFocus={() => {
+        focused.current = true;
+      }}
       onBlur={handleBlur}
       {...props}
     />
@@ -178,9 +174,9 @@ export function Field({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-xs font-medium text-muted">{label}</span>
+      <span className="medano-field__label block">{label}</span>
       {children}
-      {error && <span className="block text-xs text-danger">{error}</span>}
+      {error && <span className="medano-field__error block">{error}</span>}
     </label>
   );
 }
@@ -188,30 +184,21 @@ export function Field({
 // ---------------------------------------------------------------- Card / Badge
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return (
-    <div className={clsx('rounded-xl border border-border bg-surface p-4', className)}>
-      {children}
-    </div>
-  );
+  return <MedanoCard className={className}>{children}</MedanoCard>;
 }
 
 type BadgeTone = 'default' | 'ok' | 'danger' | 'warning' | 'primary';
 
+const BADGE_TONE_MAP: Record<BadgeTone, MedanoBadgeTone> = {
+  default: 'neutral',
+  ok: 'positive',
+  danger: 'danger',
+  warning: 'caution',
+  primary: 'accent',
+};
+
 export function Badge({ tone = 'default', children }: { tone?: BadgeTone; children: ReactNode }) {
-  return (
-    <span
-      className={clsx(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-        tone === 'default' && 'bg-surface-2 text-muted',
-        tone === 'ok' && 'bg-ok/15 text-ok',
-        tone === 'danger' && 'bg-danger/15 text-danger',
-        tone === 'warning' && 'bg-warning/15 text-warning',
-        tone === 'primary' && 'bg-primary-soft text-primary',
-      )}
-    >
-      {children}
-    </span>
-  );
+  return <MedanoBadge tone={BADGE_TONE_MAP[tone]}>{children}</MedanoBadge>;
 }
 
 /** Monto con color por signo. */
@@ -236,15 +223,13 @@ export function SignedAmount({ value, children }: { value: number | null; childr
 
 // -------------------------------------------------- Estados (carga/vacío/error en toda vista)
 
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={clsx('animate-pulse rounded-lg bg-surface-2', className)} />;
-}
+export { MedanoSkeleton as Skeleton };
 
 export function ListSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div className="space-y-2">
       {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} className="h-20" />
+        <MedanoSkeleton key={i} className="h-20" />
       ))}
     </div>
   );
@@ -259,25 +244,22 @@ export function EmptyState({
   hint?: string;
   action?: ReactNode;
 }) {
-  return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border py-10 text-center">
-      <p className="text-sm font-medium">{title}</p>
-      {hint && <p className="max-w-xs text-xs text-muted">{hint}</p>}
-      {action}
-    </div>
-  );
+  return <MedanoEmptyState title={title} description={hint} action={action} />;
 }
 
 export function ErrorState({ message, onRetry }: { message?: string; onRetry?: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-danger/30 bg-danger/5 py-8 text-center">
-      <p className="text-sm text-danger">{message ?? 'Algo salió mal'}</p>
-      {onRetry && (
-        <Button variant="secondary" onClick={onRetry}>
-          Reintentar
-        </Button>
-      )}
-    </div>
+    <MedanoAlert
+      tone="danger"
+      title={message ?? 'Algo salió mal'}
+      action={
+        onRetry && (
+          <Button variant="secondary" onClick={onRetry} type="button">
+            Reintentar
+          </Button>
+        )
+      }
+    />
   );
 }
 
@@ -334,19 +316,14 @@ export function CurrencyToggle({
   onChange: (c: 'ARS' | 'USD') => void;
 }) {
   return (
-    <div className="inline-flex rounded-lg border border-border bg-surface-2 p-0.5">
-      {(['ARS', 'USD'] as const).map((c) => (
-        <button
-          key={c}
-          onClick={() => onChange(c)}
-          className={clsx(
-            'rounded-md px-3 py-1 text-xs font-semibold transition-colors',
-            value === c ? 'bg-primary text-on-primary' : 'text-muted hover:text-fg',
-          )}
-        >
-          {c}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      label="Moneda"
+      options={[
+        { value: 'ARS', label: 'ARS' },
+        { value: 'USD', label: 'USD' },
+      ]}
+      value={value}
+      onValueChange={(v) => onChange(v as 'ARS' | 'USD')}
+    />
   );
 }
