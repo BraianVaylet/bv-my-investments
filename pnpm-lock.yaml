@@ -88,14 +88,14 @@ importers:
         specifier: ^3.9.1
         version: 3.10.0(react-hook-form@7.81.0(react@18.3.1))
       '@medano-ui/fonts':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^1.0.2
+        version: 1.0.2
       '@medano-ui/react':
-        specifier: ^0.1.0
-        version: 0.1.0(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^1.0.2
+        version: 1.0.2(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@medano-ui/tokens':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^1.0.2
+        version: 1.0.2
       '@tanstack/react-query':
         specifier: ^5.64.1
         version: 5.101.2(react@18.3.1)
@@ -722,17 +722,17 @@ packages:
     resolution: {integrity: sha512-9I2Zn6+NJLfaGoz9jN3lpwDgAYvfGeNYdbAIjJOqzs4Tpc+VU3Jqq4IofSUBKajiDS8k9fZIg18/z13mpk1bsA==}
     engines: {node: '>=8'}
 
-  '@medano-ui/fonts@0.1.0':
-    resolution: {integrity: sha512-Xa3q5LndyP7xNArrkYcOWW4deo9CHs9rglG+QL6ujXOg5iHFWTP3345fnhGiUp1nMTl15Bin0U26n1X0rEOL+Q==}
+  '@medano-ui/fonts@1.0.2':
+    resolution: {integrity: sha512-9tu3F7w9PL3NddBzp5qon7tv17Eekyld6wk28UrcBHXFwqn2L4HoTa+PPhNJLPA9PsaUrGZb0j20/u6pPQ4boQ==}
 
-  '@medano-ui/react@0.1.0':
-    resolution: {integrity: sha512-vJcNACaUKIB1rdzRRengIFdSDH0dftOO8PHR3V3ciEcUaVghxazEufoSHaDML7bTe5Ebwkzab/xMIt0n052ORA==}
+  '@medano-ui/react@1.0.2':
+    resolution: {integrity: sha512-W3S6xVYWy7S1+FumAOkkXYSNI+oIA2kIlwnyzkbxoUE8Ny0utTcdANe4AiyISmmSNBhG0LbAImw7LsVcqaMbsw==}
     peerDependencies:
       react: '>=18.3'
       react-dom: '>=18.3'
 
-  '@medano-ui/tokens@0.1.0':
-    resolution: {integrity: sha512-V9/WPxpBkJLLwfEnafgfcMqhs+f77wRGbzJtCf0eb63+HOBo8I1QpFx5yNOx4JWG8rgutA4ObHS+7Gfr76Uiwg==}
+  '@medano-ui/tokens@1.0.2':
+    resolution: {integrity: sha512-uawtWDXCCil+TsW4dK1mwhx35gSTKqyFx4W+ggT7M8pIq3EOrFtOUhvBZhf4bCW/s1FN1PzQOeeoUrGG2F3qbQ==}
 
   '@mongodb-js/saslprep@1.4.12':
     resolution: {integrity: sha512-QAfAMwNgnYxZ2C6D1HgeP7Gc4i/uvJRim415PCIL9ptRxWMNbWeLBYb2/9R4pGKny/s1FVu2JA2cxCUBUOggrA==}
@@ -2774,9 +2774,9 @@ snapshots:
 
   '@lukeed/ms@2.0.2': {}
 
-  '@medano-ui/fonts@0.1.0': {}
+  '@medano-ui/fonts@1.0.2': {}
 
-  '@medano-ui/react@0.1.0(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@medano-ui/react@1.0.2(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@base-ui/react': 1.6.0(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
@@ -2786,7 +2786,7 @@ snapshots:
       - '@types/react'
       - date-fns
 
-  '@medano-ui/tokens@0.1.0': {}
+  '@medano-ui/tokens@1.0.2': {}
 
   '@mongodb-js/saslprep@1.4.12':
     dependencies:

@@ -3,7 +3,8 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: true
+# Excluimos todo nuestro scope del retardo de release: son paquetes propios,
+# publicados por nosotros, no necesitan el cutoff anti-supply-chain. El glob
+# cubre cualquier versión (evita tener que fijar cada bump).
 minimumReleaseAgeExclude:
-  - '@medano-ui/fonts@0.1.0'
-  - '@medano-ui/react@0.1.0'
-  - '@medano-ui/tokens@0.1.0'
+  - '@medano-ui/*'

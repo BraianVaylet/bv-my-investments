@@ -158,8 +158,8 @@ export function AssetsAdminPage() {
         <div className="space-y-2">
           {query.data.map((a) => (
             <Card key={a.id} className="flex items-center justify-between py-2 pr-2">
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-semibold">{a.ticker}</span>
                   <Badge>
                     {a.instrumentTypeEmoji ? `${a.instrumentTypeEmoji} ` : ''}
