@@ -157,8 +157,8 @@ export function SignalRulesPage() {
           {query.data.map((r) => (
             <Card key={r.id} className={`py-2 pr-2 ${r.enabled ? '' : 'opacity-60'}`}>
               <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-semibold">{r.name}</span>
                     <Badge tone={r.nature === 'buy' ? 'ok' : 'danger'}>
                       {r.nature === 'buy' ? 'Compra' : 'Venta'}

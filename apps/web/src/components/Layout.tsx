@@ -1,10 +1,10 @@
+import { AccentSelector, ThemeToggle } from '@medano-ui/react';
 import { clsx } from 'clsx';
 import { ArrowDownUp, ChartPie, ChartColumn, House, Ellipsis } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useSession } from '../lib/session';
 import { Logo } from './Logo';
-import { AccentMenu, ThemeToggle } from './ThemeControls';
 
 const tabs = [
   { to: '/', label: 'Inicio', icon: House },
@@ -28,7 +28,7 @@ export function Layout() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <AccentMenu />
+          <AccentSelector />
           <ThemeToggle />
         </div>
       </header>

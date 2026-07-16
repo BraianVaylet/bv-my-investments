@@ -120,8 +120,8 @@ export function OperationsPage() {
           {query.data.items.map((op) => (
             <Card key={op.id} className="py-3">
               <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold">{op.assetTicker}</span>
                     <Badge tone={op.type === 'buy' ? 'ok' : 'danger'}>
                       {op.type === 'buy' ? 'Compra' : 'Venta'}
@@ -141,7 +141,7 @@ export function OperationsPage() {
                     </p>
                   )}
                 </div>
-                <div className="text-right">
+                <div className="shrink-0 text-right">
                   <p className="text-xs tabular-nums text-muted">
                     {fmtUnits(op.units)} × {fmtMoney(op.unitPrice, op.currencyCode)}
                   </p>
@@ -152,7 +152,6 @@ export function OperationsPage() {
                     <IconButton
                       label="Editar operación"
                       tone="primary"
-                      className="h-8 w-8"
                       onClick={() => {
                         setEditing(op);
                         setFormOpen(true);
@@ -163,7 +162,6 @@ export function OperationsPage() {
                     <IconButton
                       label="Borrar operación"
                       tone="danger"
-                      className="h-8 w-8"
                       onClick={() => setDeleting(op)}
                     >
                       <Trash2 size={15} />

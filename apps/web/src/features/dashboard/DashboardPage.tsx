@@ -99,7 +99,7 @@ export function DashboardPage() {
         right={<CurrencyToggle value={currency} onChange={setCurrency} />}
       />
 
-      {summary.isLoading && <Skeleton className="h-40" />}
+      {summary.isLoading && <Skeleton className="mb-4 h-40" />}
       {summary.isError && <ErrorState onRetry={() => summary.refetch()} />}
       {s && (
         <Card className="mb-4">
