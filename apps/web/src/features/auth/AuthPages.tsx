@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { AuthLayout } from '@medano-ui/react';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
@@ -8,18 +9,35 @@ import { useSession } from '../../lib/session';
 import { Logo } from '../../components/Logo';
 import { Button, Field, Input } from '../../components/ui';
 
-function AuthShell({ title, children }: { title: string; children: React.ReactNode }) {
+/**
+ * Layout de autenticación. Usa el template único de la familia (AuthLayout de
+ * medano); lo propio de invest es el logo y el nombre.
+ */
+function AuthShell({
+  title,
+  subtitle,
+  children,
+  footer,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+}) {
   return (
-    <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6 py-10">
-      <div className="mb-8 flex flex-col items-center text-center">
-        <Logo className="mb-3 h-14 w-14 rounded-xl" />
-        <p className="text-3xl font-bold tracking-tight">
+    <AuthLayout
+      logo={<Logo />}
+      appName={
+        <>
           BV <span className="text-primary">Invest</span>
-        </p>
-        <p className="mt-1 text-sm text-muted">{title}</p>
-      </div>
+        </>
+      }
+      title={title}
+      subtitle={subtitle}
+      footer={footer}
+    >
       {children}
-    </div>
+    </AuthLayout>
   );
 }
 
@@ -39,7 +57,18 @@ export function LoginPage() {
   if (!loading && user) return <Navigate to="/" replace />;
 
   return (
-    <AuthShell title="Ingresá a tu portafolio">
+    <AuthShell
+      title="Iniciá sesión"
+      subtitle="Ingresá a tu portafolio."
+      footer={
+        <>
+          ¿Tenés un token de invitación?{' '}
+          <Link to="/register" className="font-medium text-primary hover:underline">
+            Registrate
+          </Link>
+        </>
+      }
+    >
       <form onSubmit={form.handleSubmit((d) => login.mutate(d))} className="space-y-4">
         <Field label="Usuario" error={form.formState.errors.username?.message}>
           <Input autoComplete="username" autoCapitalize="none" {...form.register('username')} />
@@ -56,12 +85,6 @@ export function LoginPage() {
           {login.isPending ? 'Ingresando…' : 'Ingresar'}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-muted">
-        ¿Tenés un token de invitación?{' '}
-        <Link to="/register" className="font-medium text-primary">
-          Registrate
-        </Link>
-      </p>
     </AuthShell>
   );
 }
@@ -80,7 +103,18 @@ export function RegisterPage() {
   });
 
   return (
-    <AuthShell title="Creá tu cuenta con el token de invitación">
+    <AuthShell
+      title="Creá tu cuenta"
+      subtitle="Necesitás un token de invitación."
+      footer={
+        <>
+          ¿Ya tenés cuenta?{' '}
+          <Link to="/login" className="font-medium text-primary hover:underline">
+            Ingresá
+          </Link>
+        </>
+      }
+    >
       <form onSubmit={form.handleSubmit((d) => register.mutate(d))} className="space-y-4">
         <Field label="Nombre" error={form.formState.errors.displayName?.message}>
           <Input {...form.register('displayName')} />
@@ -103,12 +137,6 @@ export function RegisterPage() {
           {register.isPending ? 'Creando…' : 'Crear cuenta'}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-muted">
-        ¿Ya tenés cuenta?{' '}
-        <Link to="/login" className="font-medium text-primary">
-          Ingresá
-        </Link>
-      </p>
     </AuthShell>
   );
 }

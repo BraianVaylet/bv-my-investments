@@ -1,10 +1,11 @@
+import { ThemeProvider } from '@medano-ui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { CurrencyProvider, SessionProvider } from './lib/session';
 import { ApiError } from './lib/api';
-import { ThemeProvider } from './theme/ThemeProvider';
+import { FaviconSync } from './theme/favicon';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -30,7 +31,8 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+      <ThemeProvider storageKeys={{ theme: 'bv-theme', accent: 'bv-accent' }}>
+        <FaviconSync />
         <SessionProvider>
           <CurrencyProvider>
             <App />

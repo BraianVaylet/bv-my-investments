@@ -8,7 +8,7 @@
    todas las clases Tailwind existentes se re-skinean sin tocar componentes.
    Los tokens medano flipan solos con data-theme (dark por defecto,
    [data-theme='light'] explícito); el acento elegido sobrescribe
-   --medano-accent-* (public/theme-init.js + src/theme/accent.ts). */
+   --medano-accent-* (public/theme-init.js + el ThemeProvider de medano). */
 :root {
   --bg: var(--medano-surface-0);
   --surface: var(--medano-surface-1);
@@ -73,6 +73,17 @@ body {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* TEMPORAL — borrar al subir a @medano-ui/react@1.0.3.
+   1.0.2 trae `.medano-auth { min-block-size: 100%; justify-content: center }`,
+   que sólo tiene efecto si la app define la cadena de alturas (html, body,
+   #root { height: 100% }). Esta app la define y bv-cross no, así que el mismo
+   template rendereaba centrado acá y arriba allá. 1.0.3 quita esas dos reglas
+   (changeset pink-donuts-repeat) y este override queda redundante. */
+.medano-auth {
+  min-block-size: auto;
+  justify-content: flex-start;
 }
 
 /* inputs numéricos sin spinners */

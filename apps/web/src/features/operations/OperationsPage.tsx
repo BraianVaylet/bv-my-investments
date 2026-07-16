@@ -152,7 +152,6 @@ export function OperationsPage() {
                     <IconButton
                       label="Editar operación"
                       tone="primary"
-                      className="h-8 w-8"
                       onClick={() => {
                         setEditing(op);
                         setFormOpen(true);
@@ -163,7 +162,6 @@ export function OperationsPage() {
                     <IconButton
                       label="Borrar operación"
                       tone="danger"
-                      className="h-8 w-8"
                       onClick={() => setDeleting(op)}
                     >
                       <Trash2 size={15} />
